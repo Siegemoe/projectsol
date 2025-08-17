@@ -5,7 +5,7 @@ export default function HomePage() {
     <div className="relative overflow-hidden rounded-2xl border border-neutral-900 bg-neutral-950">
       {/* background art */}
       <div className="pointer-events-none absolute inset-0">
-        <img src="/hero-grid.svg" alt="" className="h-full w-full object-cover opacity-80" />
+        <img src="/hero-grid.svg?v=1" alt="" className="h-full w-full object-cover opacity-80" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-20">
