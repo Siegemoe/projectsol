@@ -1,0 +1,31 @@
+{
+  "name": "projectsol",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ProjectSol — Next.js + Tailwind demo with GPT-5 chat proxy",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.0.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.23",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^9.9.0",
+    "eslint-config-next": "15.0.3",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
