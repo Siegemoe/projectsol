@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="fade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#101010"></stop>
+      <stop offset="100%" stop-color="#0b0b0b"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="700" fill="url(#fade)"></rect>
+  <g opacity="0.25" stroke="#ffffff" stroke-opacity="0.12">
+    <!-- grid -->
+    <g>
+      <!-- vertical lines -->
+      <path d="M50 0v700M150 0v700M250 0v700M350 0v700M450 0v700M550 0v700M650 0v700M750 0v700M850 0v700M950 0v700M1050 0v700M1150 0v700M1250 0v700M1350 0v700"></path>
+      <!-- horizontal lines -->
+      <path d="M0 50h1400M0 150h1400M0 250h1400M0 350h1400M0 450h1400M0 550h1400M0 650h1400"></path>
+    </g>
+  </g>
+  <!-- soft glows -->
+  <g>
+    <circle cx="320" cy="180" r="220" fill="#F26D21" opacity="0.08"></circle>
+    <circle cx="980" cy="520" r="260" fill="#FFD36A" opacity="0.06"></circle>
+    <circle cx="700" cy="260" r="200" fill="#FF9F45" opacity="0.05"></circle>
+  </g>
+</svg>

@@ -1,46 +1,46 @@
 import Link from "next/link";
-import ClientChat from "./client-chat";
 
 export default function HomePage() {
   return (
-    <div className="space-y-12">
-      <section className="space-y-6">
-        <h1 className="text-4xl font-semibold tracking-tight lg:text-5xl">
-          Memory-first AI, built for real work.
-        </h1>
-        <p className="max-w-2xl text-neutral-300">
-          ProjectSol is a forward-leaning NLP platform focused on structured memory, speed, and clean UX.
-          This demo wires a simple chat to GPT-5 through a secure API route.
-        </p>
-        <div className="flex gap-3">
-          <Link
-            className="rounded-xl bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
-            href="#chat"
-          >
-            Try the demo
-          </Link>
-          <a
-            className="rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:border-neutral-600"
-            href="https://github.com/Siegemoe/projectsol"
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
-        </div>
-      </section>
+    <div className="relative overflow-hidden rounded-2xl border border-neutral-900 bg-neutral-950">
+      {/* background art */}
+      <div className="pointer-events-none absolute inset-0">
+        <img src="/hero-grid.svg" alt="" className="h-full w-full object-cover opacity-80" />
+      </div>
 
-      <section id="chat" className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4">
-        <h2 className="mb-3 text-lg font-semibold">Chat (GPT-5)</h2>
-        {/* Simple progressive enhancement: client-side Chat mounts here */}
-        <Chat />
-      </section>
+      <div className="relative mx-auto max-w-6xl px-4 py-20">
+        <div className="max-w-3xl space-y-6">
+          <h1 className="text-4xl font-semibold tracking-tight lg:text-6xl">
+            Memory-first AI, built for real work.
+          </h1>
+          <p className="max-w-2xl text-neutral-300">
+            ProjectSol is a forward-leaning NLP platform focused on structured memory, speed, and clean UX.
+            This preview showcases the interface direction and deployment pipeline.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="#"
+              onClick={(e) => e.preventDefault()} // disabled for now
+              className="rounded-xl bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+              aria-disabled="true"
+            >
+              Try the demo
+            </Link>
+            <a
+              className="rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:border-neutral-600"
+              href="https://github.com/Siegemoe/projectsol"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+          </div>
+          <div className="mt-10 flex items-center gap-3 text-sm text-neutral-400">
+            <img src="/logo-sol.svg" alt="" className="h-5 w-5 opacity-80" />
+            <span>Private alpha · Vercel deploys · TypeScript · Next.js</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
-
-function Chat() {
-  // intentionally minimal to avoid client/server edge cases
-  // if this hydrates on server, mark as client:
-  return <ClientChat />;
 }
