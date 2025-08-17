@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="border-b border-neutral-800">
           <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <div className="flex items-center gap-3">
-              <img src="/logo-sol.svg" alt="Sol" className="h-6 w-6" />
+              <img src="/logo-sol.svg?v=1" alt="Sol" className="h-6 w-6" />
               <div className="font-semibold tracking-tight">ProjectSol</div>
             </div>
             <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
