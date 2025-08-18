@@ -18,14 +18,15 @@ export default function HomePage() {
             This preview showcases the interface direction and deployment pipeline.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="#"
-              onClick={(e) => e.preventDefault()} // disabled for now
-              className="rounded-xl bg-white/10 px-4 py-2 text-sm hover:bg-white/15"
+            <button
+              type="button"
+              disabled
               aria-disabled="true"
+              title="Demo coming soon"
+              className="rounded-xl bg-white/10 px-4 py-2 text-sm opacity-60 cursor-not-allowed"
             >
               Try the demo
-            </Link>
+            </button>
             <a
               className="rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:border-neutral-600"
               href="https://github.com/Siegemoe/projectsol"
