@@ -27,9 +27,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <img src="/logo-sol.svg?v=1" alt="Sol" className="h-8 w-8 lg:h-9 lg:w-9" />
               <div className="font-semibold tracking-tight">ProjectSol</div>
             </div>
-            <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
-              {process.env.NEXT_PUBLIC_APP_ENV ?? "development"}
-            </span>
+            <nav className="flex items-center gap-4">
+              <Link href={"/signin" as Route} className="text-sm hover:text-neutral-300">Sign in</Link>
+              <Link href={"/app" as Route} className="text-sm hover:text-neutral-300">App</Link>
+              <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
+                {process.env.NEXT_PUBLIC_APP_ENV ?? "development"}
+              </span>
+            </nav>
           </header>
         </div>
         <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
