@@ -14,7 +14,7 @@ export default function ContactPage() {
           Reach out via email: <span className="text-neutral-100">hello@projectsol.dev</span> (placeholder)
         </p>
         <p className="text-neutral-400 text-sm">
-          We'll publish a proper contact form and team directory before public release.
+          {"We'll publish a proper contact form and team directory before public release."}
         </p>
       </div>
 

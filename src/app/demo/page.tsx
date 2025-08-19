@@ -20,7 +20,7 @@ export default function DemoPage() {
             Demo coming soon.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-neutral-300">
-            We're polishing the experience. Check back shortly for a hands-on preview.
+            {"We're polishing the experience. Check back shortly for a hands-on preview."}
           </p>
 
           <div className="mt-8">
