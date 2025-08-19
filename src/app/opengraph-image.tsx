@@ -36,7 +36,7 @@ export default function OpengraphImage() {
               "radial-gradient(circle at 20% 20%, #ffffff 0%, transparent 30%), radial-gradient(circle at 80% 60%, #ffffff 0%, transparent 30%)",
           }}
         />
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div
               style={{
