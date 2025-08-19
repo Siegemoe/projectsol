@@ -1,11 +1,14 @@
 import Link from "next/link";
+import type { Route } from "next";
+
 
 export default function HomePage() {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-neutral-900 bg-neutral-950">
       {/* background art */}
       <div className="pointer-events-none absolute inset-0">
-        <img src="/hero-grid.svg?v=1" alt="" className="h-full w-full object-cover opacity-80" />
+        <img src="/hero-grid.svg?v=1" alt="" className="h-full w-full object-cover opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neutral-950/40 to-neutral-950/80" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-20">
@@ -18,15 +21,12 @@ export default function HomePage() {
             This preview showcases the interface direction and deployment pipeline.
           </p>
           <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Demo coming soon"
-              className="rounded-xl bg-white/10 px-4 py-2 text-sm opacity-60 cursor-not-allowed"
+            <Link
+              href={"/demo" as Route}
+              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-200"
             >
               Try the demo
-            </button>
+            </Link>
             <a
               className="rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:border-neutral-600"
               href="https://github.com/Siegemoe/projectsol"
