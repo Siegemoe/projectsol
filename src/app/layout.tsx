@@ -22,14 +22,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
         <div className="border-b border-neutral-800">
-          <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo-sol.svg?v=1" alt="Sol" className="h-8 w-8 lg:h-9 lg:w-9" />
+          <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
+            <Link href={"/" as Route} className="flex items-center gap-3 hover:opacity-90">
+              <img src="/logo-sol.svg?v=1" alt="Sol" className="h-7 w-7 lg:h-8 lg:w-8" />
               <div className="font-semibold tracking-tight">ProjectSol</div>
-            </div>
-            <nav className="flex items-center gap-4">
+            </Link>
+            <nav className="flex items-center gap-3">
+              <Link href={"/" as Route} className="text-sm hover:text-neutral-300">Home</Link>
               <Link href={"/signin" as Route} className="text-sm hover:text-neutral-300">Sign in</Link>
               <Link href={"/app" as Route} className="text-sm hover:text-neutral-300">App</Link>
+              <Link href={"/app/chat" as Route} className="text-sm hover:text-neutral-300">Chat</Link>
               <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
                 {process.env.NEXT_PUBLIC_APP_ENV ?? "development"}
               </span>

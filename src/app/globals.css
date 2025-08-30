@@ -14,3 +14,39 @@ html, body {
 * {
   box-sizing: border-box;
 }
+
+/* Hover-only sleek scrollbars for sidebar/nav panes */
+.scroll-hover {
+  /* Firefox: hidden by default */
+  scrollbar-width: none;
+}
+
+/* Show thin scrollbar on hover (Firefox) */
+.scroll-hover:hover {
+  scrollbar-width: thin;
+  scrollbar-color: #52525b transparent; /* thumb color, track transparent */
+}
+
+/* WebKit-based browsers */
+.scroll-hover::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.scroll-hover:hover::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-hover::-webkit-scrollbar-thumb {
+  background-color: #3f3f46; /* neutral-700 */
+  border-radius: 9999px;
+}
+
+.scroll-hover:hover::-webkit-scrollbar-thumb {
+  background-color: #52525b; /* neutral-600 */
+}
+
+.scroll-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
