@@ -69,7 +69,12 @@ export default function AppSidebar() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(MODEL_KEY);
-      if (saved) setModel(saved);
+      if (saved) {
+        setModel(saved);
+      } else {
+        // Default to a commonly available OpenRouter model
+        setModel("deepseek/deepseek-chat");
+      }
     } catch {}
   }, []);
 
@@ -152,9 +157,12 @@ export default function AppSidebar() {
               onChange={(e) => setModel(e.target.value)}
               className="w-full rounded-lg bg-neutral-900 px-2 py-1 text-xs text-neutral-300 outline-none focus:outline-none"
             >
-              <option value="sol-default">Sol default</option>
-              <option value="gpt-4o">gpt-4o</option>
-              <option value="claude-3.5-sonnet">claude-3.5-sonnet</option>
+              <option value="deepseek/deepseek-chat">DeepSeek v3.1</option>
+              <option value="openai/gpt-5">GPT-5</option>
+              <option value="openai/gpt-5-mini">GPT-5 Mini</option>
+              <option value="openai/gpt-oss-120b">GPT-OSS-120b</option>
+              <option value="openai/gpt-oss-120b (free)">GPT-OSS-120b (free)</option>
+              <option value="@preset/sol">Preset: Sol</option>
             </select>
           </div>
         )}

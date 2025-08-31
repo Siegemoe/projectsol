@@ -10,7 +10,7 @@ interface SolChatProps {
   apiPath?: string;
 }
 
-export default function SolChat({ title = "Sol", apiPath = "/api/chat" }: SolChatProps) {
+export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: SolChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -44,32 +44,106 @@ export default function SolChat({ title = "Sol", apiPath = "/api/chat" }: SolCha
     ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
 
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
+    }
+  }
+
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = input.trim();
     if (!trimmed || loading) return;
+
+    // Determine model from sidebar selection (localStorage), fallback to DeepSeek chat
+    const model =
+      (typeof window !== "undefined" && localStorage.getItem("app:model")) ||
+      "deepseek/deepseek-chat";
+    const temperature = 0.3;
+    const system: string | undefined = undefined;
 
     const nextMessages = [...messages, { role: "user", content: trimmed } as Message];
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
 
+    // Helper: append token to the last assistant message
+    const appendToken = (token: string) => {
+      setMessages((prev) => {
+        const copy: Message[] = [...prev];
+        if (copy.length === 0 || copy[copy.length - 1].role !== "assistant") {
+          copy.push({ role: "assistant", content: token });
+          return copy;
+        }
+        copy[copy.length - 1] = {
+          role: "assistant",
+          content: (copy[copy.length - 1].content || "") + token,
+        };
+        return copy;
+      });
+    };
+
     try {
       const res = await fetch(apiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, model, temperature, system }),
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error || "Request failed");
+      if (!res.ok || !res.body) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(errText || "Proxy request failed");
       }
 
-      const data = await res.json();
-      const content = String(data?.content ?? "").trim();
-      setMessages((prev) => [...prev, { role: "assistant", content }]);
+      // Add a placeholder assistant message for streaming
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      // Parse SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let doneStreaming = false;
+
+      while (!doneStreaming) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Split by double newlines between SSE events
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const event of events) {
+          const lines = event.split("\n");
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine.startsWith("data:")) continue;
+            const data = trimmedLine.slice(5).trim();
+            if (!data) continue;
+            if (data === "[DONE]") {
+              doneStreaming = true;
+              break;
+            }
+            try {
+              const json = JSON.parse(data);
+              // OpenAI/OpenRouter-style delta
+              const delta =
+                json?.choices?.[0]?.delta?.content ??
+                json?.choices?.[0]?.message?.content ??
+                "";
+              if (typeof delta === "string" && delta.length > 0) {
+                appendToken(delta);
+              }
+            } catch {
+              // Non-JSON ping/keepalive, ignore
+            }
+          }
+          if (doneStreaming) break;
+        }
+      }
     } catch (err: any) {
+      // If streaming failed, append an error assistant message
       setMessages((prev) => [
         ...prev,
         {
@@ -82,13 +156,6 @@ export default function SolChat({ title = "Sol", apiPath = "/api/chat" }: SolCha
     } finally {
       setLoading(false);
       inputRef.current?.focus();
-    }
-  }
-
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
     }
   }
 
