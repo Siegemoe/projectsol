@@ -7,7 +7,7 @@ export const size = {
 
 export const contentType = "image/png";
 
-// Placeholder favicon generated at build/runtime (no binary needed)
+// Minimal static icon with no text to avoid font loading on Windows
 export default function Icon() {
   return new ImageResponse(
     (
@@ -15,19 +15,24 @@ export default function Icon() {
         style={{
           width: "100%",
           height: "100%",
+          background: "#0a0a0a",
+          // add a subtle inner circle purely with CSS (no text, so no fonts)
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0a0a0a",
-          color: "#ffffff",
-          fontSize: 20,
-          fontWeight: 800,
-          letterSpacing: -0.5,
         }}
       >
-        S
+        <div
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 9999,
+            background: "#1f2937",
+            boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.06)",
+          }}
+        />
       </div>
     ),
-    size
+    { ...size, fonts: [] }
   );
 }
