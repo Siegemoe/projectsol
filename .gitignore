@@ -34,3 +34,6 @@ pnpm-debug.log*
 
 # Types
 next-env.d.ts
+
+# TypeScript incremental build info
+*.tsbuildinfo
