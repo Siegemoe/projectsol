@@ -49,11 +49,10 @@ export default function EmailWindow({
   // Controlled/uncontrolled folder
   const [internalFolder, setInternalFolder] = useState<Folder>(controlledFolder ?? "inbox");
   useEffect(() => {
-    if (controlledFolder && controlledFolder !== internalFolder) {
+    if (controlledFolder !== undefined && controlledFolder !== internalFolder) {
       setInternalFolder(controlledFolder);
     }
-  }, [controlledFolder]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  }, [controlledFolder, internalFolder]);
   const folder: Folder = controlledFolder ?? internalFolder;
   const setFolder = (f: Folder) => {
     if (onChangeFolder) onChangeFolder(f);
@@ -83,34 +82,76 @@ export default function EmailWindow({
 
   // Simple drag-to-resize for preview pane
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  // Store stable listener references so we can reliably remove them on unmount or mouseup/touchend
+  const moveListenerRef = useRef<((ev: MouseEvent | TouchEvent) => void) | null>(null);
+  const upListenerRef = useRef<((ev: MouseEvent | TouchEvent) => void) | null>(null);
+
   function onResizeStart(e: React.MouseEvent | React.TouchEvent) {
-    const clientX = "touches" in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientX =
+      "touches" in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
     dragRef.current = { startX: clientX, startWidth: previewWidth };
 
-    const move = (ev: MouseEvent | TouchEvent) => {
+    // Define and store listeners in refs, using the same references for add/remove
+    moveListenerRef.current = (ev: MouseEvent | TouchEvent) => {
       const x =
-        ev instanceof TouchEvent ? ev.touches[0]?.clientX ?? dragRef.current!.startX : (ev as MouseEvent).clientX;
+        ev instanceof TouchEvent
+          ? ev.touches[0]?.clientX ?? dragRef.current!.startX
+          : (ev as MouseEvent).clientX;
       const dx = x - dragRef.current!.startX;
-      // Preview is on the right, positive dx should INCREASE width
-      const next = Math.min(MAX_PREVIEW, Math.max(MIN_PREVIEW, dragRef.current!.startWidth + dx));
+      // Reverse behavior: dragging RIGHT should DECREASE preview width (previously inverted)
+      const next = Math.min(
+        MAX_PREVIEW,
+        Math.max(MIN_PREVIEW, dragRef.current!.startWidth - dx)
+      );
       setPreviewWidth(next);
       // prevent passive scrolling on touch
-      ev.preventDefault?.();
-    };
-    const up = () => {
-      window.removeEventListener("mousemove", move as any);
-      window.removeEventListener("touchmove", move as any);
-      window.removeEventListener("mouseup", up);
-      window.removeEventListener("touchend", up);
-      dragRef.current = null;
+      (ev as any).preventDefault?.();
     };
 
-    window.addEventListener("mousemove", move as any, { passive: false } as any);
-    window.addEventListener("touchmove", move as any, { passive: false } as any);
-    window.addEventListener("mouseup", up);
-    window.addEventListener("touchend", up);
+    upListenerRef.current = () => {
+      const move = moveListenerRef.current as any;
+      const up = upListenerRef.current as any;
+      if (move) {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("touchmove", move);
+      }
+      if (up) {
+        window.removeEventListener("mouseup", up);
+        window.removeEventListener("touchend", up);
+      }
+      dragRef.current = null;
+      // Clear refs to avoid stale handlers
+      moveListenerRef.current = null;
+      upListenerRef.current = null;
+    };
+
+    // Attach listeners using the stored references
+    window.addEventListener("mousemove", moveListenerRef.current as any, { passive: false } as any);
+    window.addEventListener("touchmove", moveListenerRef.current as any, { passive: false } as any);
+    window.addEventListener("mouseup", upListenerRef.current as any);
+    window.addEventListener("touchend", upListenerRef.current as any);
+
     e.preventDefault();
   }
+
+  // Ensure global listeners are removed if the component unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      const move = moveListenerRef.current as any;
+      const up = upListenerRef.current as any;
+      if (move) {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("touchmove", move);
+      }
+      if (up) {
+        window.removeEventListener("mouseup", up);
+        window.removeEventListener("touchend", up);
+      }
+      dragRef.current = null;
+      moveListenerRef.current = null;
+      upListenerRef.current = null;
+    };
+  }, []);
 
   // Load mock sections whenever provider/folder changes
   useEffect(() => {

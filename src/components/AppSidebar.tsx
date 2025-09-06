@@ -148,20 +148,43 @@ export default function AppSidebar() {
 
   // Helper: open Email overlay inside chat
   function openEmail(folder?: "inbox" | "pinned" | "drafts" | "sent" | "trash") {
+    // Validate folder against allowed set. Only include in query when valid.
+    const allowed = new Set<"inbox" | "pinned" | "drafts" | "sent" | "trash">(["inbox", "pinned", "drafts", "sent", "trash"]);
+    const safeFolder = folder && allowed.has(folder) ? folder : undefined;
+
     const inChat = pathname?.startsWith("/app/chat");
     if (!inChat) {
       // Navigate to chat with query to trigger email open
-      const qs = new URLSearchParams({ email: "1", ...(folder ? { folder } : {}) }).toString();
+      const baseParams: Record<string, string> = { email: "1" };
+      if (safeFolder) baseParams.folder = safeFolder;
+      const qs = new URLSearchParams(baseParams).toString();
       router.push(("/app/chat" + (qs ? `?${qs}` : "")) as Route);
       return;
     }
+
     try {
+      // Use a safe default for the overlay dispatch
+      const dispatchFolder = safeFolder ?? "inbox";
       window.dispatchEvent(
         new CustomEvent("sol:open-email", {
-          detail: { open: true, folder },
+          detail: { open: true, folder: dispatchFolder },
         } as any)
       );
-    } catch {}
+    } catch (err) {
+      console.error("AppSidebar: Failed to dispatch 'sol:open-email' event", err);
+      // Fallback: attempt navigation with minimal query so the Email UI can open
+      try {
+        const baseParams: Record<string, string> = { email: "1" };
+        if (safeFolder) baseParams.folder = safeFolder;
+        const qs = new URLSearchParams(baseParams).toString();
+        router.push(("/app/chat" + (qs ? `?${qs}` : "")) as Route);
+      } catch (navErr) {
+        console.error("AppSidebar: Fallback navigation failed", navErr);
+        if (typeof window !== "undefined") {
+          alert("Unable to open Email right now. Please try again.");
+        }
+      }
+    }
   }
 
   const projects: NavItem[] = [
@@ -180,7 +203,7 @@ export default function AppSidebar() {
   }
 
   return (
-    <aside className={`flex h-full ${collapsed ? "w-12" : "w-72"} flex-col bg-neutral-950`}>
+    <aside className={`flex h-full ${collapsed ? "w-12" : "w-[13.5rem]"} flex-col bg-neutral-950`}>
       {/* Sticky brand/section */}
       <div className="sticky top-0 z-10 border-b border-neutral-900 bg-neutral-950/70 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
         <div className="relative h-7 flex items-center justify-between">
