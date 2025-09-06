@@ -69,16 +69,17 @@ WHERE extname = 'vector';
 SELECT '[-0.25, 0.5, 0.25]'::vector;
 ```
 
-Permissions sanity (optional)
-```sql
--- Ensure roles that need vector can resolve it
--- (These will be satisfied by the migration.)
-SELECT nspname, usename
-FROM pg_namespace n
-JOIN pg_authid r ON true
-WHERE nspname = 'extensions';
-```
+-- Verify schema USAGE by role
+SELECT r.rolname AS role,
+       has_schema_privilege(r.rolname, 'extensions', 'USAGE') AS has_usage
+FROM pg_roles r
+WHERE r.rolname IN ('postgres','authenticated','service_role','anon');
 
+-- Quick runtime check (optional)
+SET ROLE authenticated;
+SHOW search_path;
+SELECT '[-0.25,0.5,0.25]'::vector;
+RESET ROLE;
 Known behaviors and rollback
 - If any SQL explicitly references `public.vector`, update to `extensions.vector` or rely on `search_path`.
 - To locate such references:

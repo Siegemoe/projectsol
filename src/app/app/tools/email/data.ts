@@ -65,14 +65,13 @@ function buildThread(
 
 function mockPinnedBadges(): string[] {
   return [
-    "Payroll Mangement",
+    "Payroll Management",
     "Steam Store",
     "no-reply@schoolcues.com",
     "Kryslen Bohlt",
     "FederalWayWA@goddard...",
   ];
 }
-
 export function getNewSenders(providerId: ProviderId): NewSender[] {
   // 3 cards as shown in the screenshot example
   const now = Date.now();

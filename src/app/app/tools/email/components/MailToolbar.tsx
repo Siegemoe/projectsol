@@ -2,7 +2,7 @@
 
 import { type ProviderId } from "../types";
 import { providerList } from "../providers";
-import { type ComponentType } from "react";
+import { type ComponentType, type ChangeEventHandler } from "react";
 
 type ToolbarAction = {
   label: string;
@@ -29,6 +29,17 @@ export default function MailToolbar({
   actions: ToolbarAction[];
   newSendersCount: number;
 }) {
+  const providerSelectId = "mail-provider-select";
+  const validProviderIds = new Set<string>(providerList.map((p) => p.id));
+  const isProviderId = (v: string): v is ProviderId => validProviderIds.has(v);
+  const handleProviderChange: ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const v = e.target.value;
+    if (isProviderId(v)) {
+      onProviderChange(v);
+    }
+    // else ignore invalid values
+  };
+
   return (
     <div className="flex items-center gap-3 border-b border-neutral-900 px-3 py-2 sm:px-4">
       <div className="min-w-0 flex-1">
@@ -43,10 +54,11 @@ export default function MailToolbar({
 
       {/* Provider switch */}
       <div className="hidden items-center gap-2 sm:flex">
-        <label className="text-xs text-neutral-500">Provider</label>
-        <select
+<label htmlFor={providerSelectId} className="text-xs text-neutral-500">Provider</label>
+<select
+          id={providerSelectId}
           value={providerId}
-          onChange={(e) => onProviderChange(e.target.value as ProviderId)}
+          onChange={handleProviderChange}
           className="rounded-lg bg-neutral-900 px-2 py-1 text-xs text-neutral-300 outline-none"
         >
           {providerList.map((p) => (
@@ -59,10 +71,14 @@ export default function MailToolbar({
 
       {/* Search */}
       <div className="flex min-w-[140px] items-center">
+        <label htmlFor="mail-search" className="sr-only">Search mail</label>
         <input
+          id="mail-search"
+          type="search"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search mail"
+          enterKeyHint="search"
           className="w-40 rounded-lg border border-neutral-900 bg-neutral-900/60 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-700 sm:w-56"
         />
       </div>

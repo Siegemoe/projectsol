@@ -6,6 +6,7 @@ export const size = {
 };
 
 export const contentType = "image/png";
+export const runtime = "edge";
 
 // Placeholder Open Graph image (no binary needed)
 // URL: /opengraph-image (auto-used for OG/Twitter previews)
@@ -97,6 +98,6 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size
+    { ...size, fonts: [] }
   );
 }

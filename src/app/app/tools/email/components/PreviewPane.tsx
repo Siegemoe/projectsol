@@ -1,7 +1,27 @@
 "use client";
 
 import type { Thread } from "../types";
-import { Reply, ReplyAll, Forward, MoreHorizontal, Paperclip } from "lucide-react";
+import {
+  Reply,
+  ReplyAll,
+  Forward,
+  MoreHorizontal,
+  Paperclip,
+  type LucideIcon,
+} from "lucide-react";
+
+function IconButton({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+    >
+      <Icon className="h-4 w-4 text-neutral-300" />
+    </button>
+  );
+}
 
 export default function PreviewPane({ thread }: { thread: Thread | null }) {
   if (!thread) {
@@ -74,24 +94,5 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function IconButton({
-  label,
-  icon: Icon,
-}: {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
-    >
-      <Icon className="h-4 w-4 text-neutral-300" />
-    </button>
   );
 }

@@ -54,12 +54,11 @@ export default function EmailWindow() {
         ...s,
         threads: s.threads.filter(
           (t) =>
-            t.subject.toLowerCase().includes(q) ||
-            t.sender.name.toLowerCase().includes(q) ||
-            t.sender.email.toLowerCase().includes(q) ||
-            t.snippet.toLowerCase().includes(q)
-        ),
-      }))
+            (t.subject   ?? "").toLowerCase().includes(q) ||
+            (t.sender?.name  ?? "").toLowerCase().includes(q) ||
+            (t.sender?.email ?? "").toLowerCase().includes(q) ||
+            (t.snippet   ?? "").toLowerCase().includes(q)
+        ),      }))
       .filter((s) => s.threads.length > 0);
   }, [sections, query]);
 

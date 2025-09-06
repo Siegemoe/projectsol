@@ -53,6 +53,16 @@ function Item({
   );
 }
 
+function isValidFolder(key: string): key is Folder {
+  return (
+    key === "inbox" ||
+    key === "pinned" ||
+    key === "drafts" ||
+    key === "sent" ||
+    key === "trash"
+  );
+}
+
 export default function MailSidebar({ activeFolder, onChangeFolder, unreadCount, pinnedCount }: Props) {
   const top: NavItem[] = useMemo(
     () => [
@@ -89,8 +99,8 @@ export default function MailSidebar({ activeFolder, onChangeFolder, unreadCount,
                 item={i}
                 active={i.key !== "home" && i.key === activeFolder}
                 onClick={() => {
-                  if (i.key !== "home" && i.key !== "archive" && i.key !== "more") {
-                    onChangeFolder(i.key as Folder);
+                  if (isValidFolder(i.key)) {
+                    onChangeFolder(i.key);
                   }
                 }}
               />

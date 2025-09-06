@@ -7,6 +7,8 @@ export const size = {
 
 export const contentType = "image/png";
 
+export const runtime = "edge";
+
 // Minimal static icon with no text to avoid font loading on Windows
 export default function Icon() {
   return new ImageResponse(

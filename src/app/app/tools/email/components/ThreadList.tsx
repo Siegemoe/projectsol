@@ -24,11 +24,12 @@ export default function ThreadList({
           <SectionHeader title={section.title} />
 
           {/* Optional pinned group row (if any thread is pinned in this section) */}
-          {section.title === "Today" &&
-          section.threads.some((t) => t.pinned && (t.labels?.length ?? 0) > 0) ? (
-            <PinnedRow thread={section.threads.find((t) => t.pinned)!} />
-          ) : null}
-
+          {section.title === "Today" && (() => {
+            const pinnedThread = section.threads.find(
+              (t) => t.pinned && (t.labels?.length ?? 0) > 0
+            );
+            return pinnedThread ? <PinnedRow thread={pinnedThread} /> : null;
+          })()}
           <div className="divide-y divide-neutral-900 rounded-xl border border-neutral-900 bg-neutral-950/60">
             {section.threads
               .filter((t) => !t.pinned) // hide the special pinned-group placeholder row from main list
@@ -111,9 +112,11 @@ function ThreadRow({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onClick();
-      }}
-      className={[
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}      className={[
         "group flex w-full items-start gap-3 px-3 py-2 text-left transition",
         selected ? "bg-white/10" : "hover:bg-neutral-900/60",
       ].join(" ")}

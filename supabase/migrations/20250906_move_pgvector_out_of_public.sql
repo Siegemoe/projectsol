@@ -42,7 +42,12 @@ END $$;
 
 -- 4) Ensure unqualified names still resolve to the extension by setting search_path
 -- Database-wide default for new sessions
-ALTER DATABASE postgres SET search_path = public, extensions, pg_temp;
+DO $$
+DECLARE
+  db text := current_database();
+BEGIN
+  EXECUTE format('ALTER DATABASE %I SET search_path = public, extensions, pg_temp', db);
+END $$;
 
 -- Optionally also set per-role defaults (skips if roles are missing)
 -- Note: ALTER ROLE ... IN DATABASE requires PostgreSQL 16+. For PG < 16, we rely on the database-level default above.
