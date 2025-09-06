@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import EmailWindow from "@/app/app/tools/email/components/EmailWindow";
 
 type Role = "user" | "assistant";
 type Message = { role: Role; content: string };
+type Folder = "inbox" | "pinned" | "drafts" | "sent" | "trash";
 
 interface SolChatProps {
   title?: string;
@@ -20,6 +22,10 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Email overlay state
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailFolder, setEmailFolder] = useState<Folder>("inbox");
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -43,6 +49,39 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
     ta.style.height = `${newHeight}px`;
     ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
+
+  // Listen for global "sol:open-email" events dispatched by the AppSidebar
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyEvt = e as CustomEvent<{ open?: boolean; folder?: Folder }>;
+      const detail = anyEvt?.detail || {};
+      if (detail.folder) setEmailFolder(detail.folder);
+      if (detail.open === false) setEmailOpen(false);
+      else setEmailOpen(true);
+    };
+    window.addEventListener("sol:open-email", handler as EventListener);
+    return () => window.removeEventListener("sol:open-email", handler as EventListener);
+  }, []);
+
+  // Support deep-linking via query params: ?email=1&folder=inbox
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      const shouldOpen = url.searchParams.get("email");
+      if (shouldOpen === "1") {
+        const f = url.searchParams.get("folder") as Folder | null;
+        if (f) setEmailFolder(f);
+        setEmailOpen(true);
+        // Clean the URL
+        const params = new URLSearchParams(url.searchParams);
+        params.delete("email");
+        params.delete("folder");
+        const next = url.pathname + (params.toString() ? `?${params.toString()}` : "");
+        window.history.replaceState({}, "", next);
+      }
+    } catch {}
+  }, []);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -160,7 +199,7 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Scrollable messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
         <div className="mx-auto flex max-w-3xl flex-col gap-3">
@@ -214,6 +253,15 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
                 +
               </button>
               <span>Tools</span>
+              <button
+                type="button"
+                onClick={() => setEmailOpen(true)}
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-800 px-2 py-1 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
+                aria-label="Open Email"
+                title="Email"
+              >
+                Email
+              </button>
             </div>
             <button
               type="submit"
@@ -228,6 +276,25 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
         <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-neutral-500 text-center">
           Sol can make mistakes, fact check her.
         </div>
+      </div>
+
+      {/* Email overlay panel (flows out from the left like switching apps) */}
+      <div
+        className={[
+          "pointer-events-auto absolute inset-0 z-20 bg-neutral-950 transition-transform duration-300",
+          emailOpen ? "translate-x-0 ease-out" : "-translate-x-full ease-in",
+        ].join(" ")}
+        aria-hidden={!emailOpen}
+      >
+        {emailOpen && (
+          <EmailWindow
+            embedded
+            showSidebar={false}
+            folder={emailFolder}
+            onChangeFolder={setEmailFolder}
+            onClose={() => setEmailOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

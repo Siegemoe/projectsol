@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Route } from "next";
 import {
@@ -17,6 +17,13 @@ import {
   User2,
   ChevronLeft,
   ChevronRight,
+  Inbox,
+  Pin,
+  FileText,
+  Send,
+  Trash2,
+  NotebookText,
+  Calendar,
 } from "lucide-react";
 
 type NavItem = {
@@ -58,13 +65,45 @@ function Item({
   );
 }
 
+function SubItem({
+  label,
+  icon: Icon,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={[
+        "group flex w-full items-center gap-2 rounded-lg pl-8 pr-2 py-2 text-sm transition",
+        "text-neutral-300 hover:bg-neutral-900",
+        disabled ? "opacity-60 pointer-events-none" : "",
+      ].join(" ")}
+    >
+      {Icon ? <Icon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-300" /> : null}
+      <span>{label}</span>
+    </button>
+  );
+}
+
 export default function AppSidebar() {
+  const router = useRouter();
   const pathname = usePathname();
 
   const MODEL_KEY = "app:model";
   const [model, setModel] = useState<string>("sol-default");
   const COLLAPSE_KEY = "app:sidebarCollapsed";
   const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  // Expand/collapse Email submenu
+  const [emailExpanded, setEmailExpanded] = useState<boolean>(true);
 
   useEffect(() => {
     try {
@@ -107,11 +146,23 @@ export default function AppSidebar() {
     { label: "Library", href: "/app/library" as Route, icon: BookText },
   ];
 
-  const tools: NavItem[] = [
-    { label: "Email", href: "/app/tools/email" as Route, icon: Mail },
-    { label: "Cline", href: "/app/tools/cline" as Route, icon: Bot },
-    { label: "n8n", href: "/app/tools/n8n" as Route, icon: Workflow },
-  ];
+  // Helper: open Email overlay inside chat
+  function openEmail(folder?: "inbox" | "pinned" | "drafts" | "sent" | "trash") {
+    const inChat = pathname?.startsWith("/app/chat");
+    if (!inChat) {
+      // Navigate to chat with query to trigger email open
+      const qs = new URLSearchParams({ email: "1", ...(folder ? { folder } : {}) }).toString();
+      router.push(("/app/chat" + (qs ? `?${qs}` : "")) as Route);
+      return;
+    }
+    try {
+      window.dispatchEvent(
+        new CustomEvent("sol:open-email", {
+          detail: { open: true, folder },
+        } as any)
+      );
+    } catch {}
+  }
 
   const projects: NavItem[] = [
     { label: "New project", href: "/app/projects/new" as Route, icon: FolderPlus },
@@ -140,7 +191,7 @@ export default function AppSidebar() {
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute right-0 top-1/2 -translate-y-1/2 -right-3 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800 shadow"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800 shadow"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4 text-neutral-300" />
@@ -183,9 +234,37 @@ export default function AppSidebar() {
           <section>
             <div className="px-2 pb-2 text-xs uppercase tracking-wide text-neutral-500">Tools</div>
             <div className="space-y-1">
-              {tools.map((item) => (
-                <Item key={item.label} item={item} active={isActive(item.href)} />
-              ))}
+              {/* Email group (opens inside chat) */}
+              <Item
+                item={{
+                  label: "Email",
+                  icon: Mail,
+                  onClick: () => {
+                    setEmailExpanded((v) => !v);
+                    openEmail("inbox");
+                  },
+                }}
+                active={pathname?.startsWith("/app/chat")}
+              />
+              {emailExpanded && (
+                <div className="space-y-1">
+                  <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-wide text-neutral-500">Folders</div>
+                  <SubItem label="Inbox" icon={Inbox} onClick={() => openEmail("inbox")} />
+                  <SubItem label="Pins" icon={Pin} onClick={() => openEmail("pinned")} />
+                  <SubItem label="Drafts" icon={FileText} onClick={() => openEmail("drafts")} />
+                  <SubItem label="Sent" icon={Send} onClick={() => openEmail("sent")} />
+                  <SubItem label="Trash" icon={Trash2} onClick={() => openEmail("trash")} />
+
+                  <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-wide text-neutral-500">Shortcuts</div>
+                  <SubItem label="Meeting Notes" icon={NotebookText} disabled />
+                  <SubItem label="Calendar" icon={Calendar} disabled />
+                  <SubItem label="Settings" disabled />
+                </div>
+              )}
+
+              {/* Other tools still navigate to their routes */}
+              <Item item={{ label: "Cline", href: "/app/tools/cline" as Route, icon: Bot }} active={pathname === "/app/tools/cline"} />
+              <Item item={{ label: "n8n", href: "/app/tools/n8n" as Route, icon: Workflow }} active={pathname === "/app/tools/n8n"} />
             </div>
           </section>
 

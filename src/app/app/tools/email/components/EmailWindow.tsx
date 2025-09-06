@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, Minus, X, RefreshCcw, SlidersHorizontal, PencilLine } from "lucide-react";
 import type { ProviderId, Thread, ThreadSection } from "../types";
 import { providerList, providers } from "../providers";
@@ -10,6 +10,7 @@ import MailToolbar from "./MailToolbar";
 import NewSendersRow from "./NewSendersRow";
 import ThreadList from "./ThreadList";
 import PreviewPane from "./PreviewPane";
+import { useRouter } from "next/navigation";
 
 type Folder = Thread["folder"];
 
@@ -19,13 +20,97 @@ function formatHeaderDate(d = new Date()) {
   return { day, full };
 }
 
-export default function EmailWindow() {
+type EmailWindowProps = {
+  // When embedded inside Chat, render without decorative chrome and without the internal mail sidebar
+  embedded?: boolean;
+  // Explicitly control whether to show the internal sidebar (ignored when embedded=true)
+  showSidebar?: boolean;
+  // Controlled folder (when omitted, EmailWindow manages its own folder state)
+  folder?: Folder;
+  onChangeFolder?: (f: Folder) => void;
+  // Called when the top-right X is pressed. If not provided, will navigate back to chat.
+  onClose?: () => void;
+};
+
+const MIN_PREVIEW = 320;
+const MAX_PREVIEW = 600;
+const DEFAULT_PREVIEW = 420;
+
+export default function EmailWindow({
+  embedded = false,
+  showSidebar = true,
+  folder: controlledFolder,
+  onChangeFolder,
+  onClose,
+}: EmailWindowProps) {
+  const router = useRouter();
   const [providerId, setProviderId] = useState<ProviderId>("gmail");
-  const [folder, setFolder] = useState<Folder>("inbox");
+
+  // Controlled/uncontrolled folder
+  const [internalFolder, setInternalFolder] = useState<Folder>(controlledFolder ?? "inbox");
+  useEffect(() => {
+    if (controlledFolder && controlledFolder !== internalFolder) {
+      setInternalFolder(controlledFolder);
+    }
+  }, [controlledFolder]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const folder: Folder = controlledFolder ?? internalFolder;
+  const setFolder = (f: Folder) => {
+    if (onChangeFolder) onChangeFolder(f);
+    else setInternalFolder(f);
+  };
+
   const [query, setQuery] = useState("");
   const [sections, setSections] = useState<ThreadSection[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newSenders, setNewSenders] = useState(() => getNewSenders("gmail"));
+
+  // Persisted preview width (resizable)
+  const [previewWidth, setPreviewWidth] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const v = parseInt(localStorage.getItem("mail:previewWidth") || "", 10);
+      if (!Number.isNaN(v)) {
+        return Math.min(MAX_PREVIEW, Math.max(MIN_PREVIEW, v));
+      }
+    }
+    return DEFAULT_PREVIEW;
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("mail:previewWidth", String(previewWidth));
+    } catch {}
+  }, [previewWidth]);
+
+  // Simple drag-to-resize for preview pane
+  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  function onResizeStart(e: React.MouseEvent | React.TouchEvent) {
+    const clientX = "touches" in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    dragRef.current = { startX: clientX, startWidth: previewWidth };
+
+    const move = (ev: MouseEvent | TouchEvent) => {
+      const x =
+        ev instanceof TouchEvent ? ev.touches[0]?.clientX ?? dragRef.current!.startX : (ev as MouseEvent).clientX;
+      const dx = x - dragRef.current!.startX;
+      // Preview is on the right, positive dx should INCREASE width
+      const next = Math.min(MAX_PREVIEW, Math.max(MIN_PREVIEW, dragRef.current!.startWidth + dx));
+      setPreviewWidth(next);
+      // prevent passive scrolling on touch
+      ev.preventDefault?.();
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move as any);
+      window.removeEventListener("touchmove", move as any);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchend", up);
+      dragRef.current = null;
+    };
+
+    window.addEventListener("mousemove", move as any, { passive: false } as any);
+    window.addEventListener("touchmove", move as any, { passive: false } as any);
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchend", up);
+    e.preventDefault();
+  }
 
   // Load mock sections whenever provider/folder changes
   useEffect(() => {
@@ -54,11 +139,12 @@ export default function EmailWindow() {
         ...s,
         threads: s.threads.filter(
           (t) =>
-            (t.subject   ?? "").toLowerCase().includes(q) ||
-            (t.sender?.name  ?? "").toLowerCase().includes(q) ||
+            (t.subject ?? "").toLowerCase().includes(q) ||
+            (t.sender?.name ?? "").toLowerCase().includes(q) ||
             (t.sender?.email ?? "").toLowerCase().includes(q) ||
-            (t.snippet   ?? "").toLowerCase().includes(q)
-        ),      }))
+            (t.snippet ?? "").toLowerCase().includes(q)
+        ),
+      }))
       .filter((s) => s.threads.length > 0);
   }, [sections, query]);
 
@@ -97,7 +183,7 @@ export default function EmailWindow() {
     );
   }
 
-  // Counts for sidebar
+  // Counts for sidebar badges
   const unreadCount = useMemo(
     () => sections.flatMap((s) => s.threads).filter((t) => t.unread).length,
     [sections]
@@ -109,31 +195,41 @@ export default function EmailWindow() {
 
   const { day, full } = formatHeaderDate();
 
+  const showInnerSidebar = !embedded && showSidebar !== false;
+
+  function handleClose() {
+    if (onClose) {
+      onClose();
+      return;
+    }
+    // Fallback: navigate back to chat
+    try {
+      router.push("/app/chat");
+    } catch {
+      // no-op
+    }
+  }
+
   return (
     <div className="flex h-full w-full">
-      {/* Decorative window with subtle chrome */}
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl">
-        {/* Window title bar */}
+      {/* Outer container: decorative chrome only when not embedded */}
+      <div
+        className={
+          embedded
+            ? "flex h-full w-full flex-col overflow-hidden"
+            : "flex h-full w-full flex-col overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl"
+        }
+      >
+        {/* Title bar (no traffic-light dots). Keep compact label and top-right controls */}
         <div className="flex items-center gap-2 border-b border-neutral-900 px-3 py-2">
-          <div className="flex items-center gap-1.5">
-            {/* traffic-light dots (decorative) */}
-            <button
-              aria-label="Close"
-              className="h-2.5 w-2.5 rounded-full bg-red-500/80"
-              onClick={() => {
-                /* decorative only for now */
-              }}
-            />
-            <button aria-label="Minimize" className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
-            <button aria-label="Maximize" className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
-          </div>
-          <div className="ml-2 flex items-center gap-2 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 text-sm text-neutral-400">
             <Mail className="h-4 w-4 text-neutral-300" />
             <span className="text-neutral-200">Mail</span>
             <span className="text-neutral-500">/</span>
             <span className="text-neutral-400 capitalize">{folder}</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* Keep minimize for symmetry; no-op for now */}
             <button
               type="button"
               className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
@@ -145,21 +241,24 @@ export default function EmailWindow() {
               type="button"
               className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
               aria-label="Close window"
+              onClick={handleClose}
             >
               <X className="h-4 w-4 text-neutral-300" />
             </button>
           </div>
         </div>
 
-        {/* Three-pane layout */}
+        {/* Two/three pane layout */}
         <div className="flex min-h-0 flex-1">
-          {/* Inner mail sidebar */}
-          <MailSidebar
-            activeFolder={folder}
-            onChangeFolder={setFolder}
-            unreadCount={unreadCount}
-            pinnedCount={pinnedCount}
-          />
+          {/* Inner mail sidebar (hidden in embedded mode) */}
+          {showInnerSidebar ? (
+            <MailSidebar
+              activeFolder={folder}
+              onChangeFolder={setFolder}
+              unreadCount={unreadCount}
+              pinnedCount={pinnedCount}
+            />
+          ) : null}
 
           {/* Main column */}
           <div className="flex min-w-0 flex-1 flex-col border-r border-neutral-900">
@@ -195,9 +294,25 @@ export default function EmailWindow() {
             </div>
           </div>
 
-          {/* Preview pane (hidden on smaller screens) */}
-          <div className="hidden min-w-[340px] max-w-[520px] border-l border-neutral-900 lg:block">
-            <PreviewPane thread={selectedThread} />
+          {/* Resizer + Preview pane (lg and up) */}
+          <div className="hidden lg:flex">
+            {/* Resizer handle */}
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              title="Resize preview"
+              className="w-2 cursor-col-resize hover:bg-neutral-900 active:bg-neutral-900"
+              onMouseDown={onResizeStart}
+              onTouchStart={onResizeStart}
+            />
+
+            {/* Preview pane */}
+            <div
+              className="min-w-[320px] max-w-[600px] border-l border-neutral-900"
+              style={{ width: previewWidth }}
+            >
+              <PreviewPane thread={selectedThread} />
+            </div>
           </div>
         </div>
       </div>
