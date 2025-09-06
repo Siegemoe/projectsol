@@ -16,13 +16,14 @@ export default function NewSendersRow({ items }: { items: NewSender[] }) {
   if (!items.length) return null;
 
   return (
-    <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+    <div className="overflow-x-auto overflow-y-hidden scroll-hover" aria-label="New senders">
+      <div className="flex gap-3 snap-x snap-mandatory">
       {items.map((card) => {
         const decision = decisions[card.id];
         return (
           <div
             key={card.id}
-            className="rounded-xl border border-neutral-900 bg-neutral-950 px-3 py-3 shadow-sm"
+            className="w-[18rem] shrink-0 snap-start rounded-xl border border-neutral-900 bg-neutral-950 px-3 py-3 shadow-sm"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-sm font-medium text-neutral-200">
@@ -68,6 +69,7 @@ export default function NewSendersRow({ items }: { items: NewSender[] }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
