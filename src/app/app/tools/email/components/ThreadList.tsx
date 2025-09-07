@@ -17,19 +17,17 @@ export default function ThreadList({
   onToggleUnread: (id: string) => void;
   onTogglePinned: (id: string) => void;
 }) {
+  // Collect unique labels from all pinned threads across sections
+  const pinnedThreads = sections.flatMap((s) => s.threads.filter((t) => t.pinned));
+  const pinnedLabels = Array.from(new Set(pinnedThreads.flatMap((t) => t.labels ?? [])));
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {pinnedLabels.length > 0 ? <PinnedRow labels={pinnedLabels} /> : null}
       {sections.map((section) => (
         <Fragment key={section.title}>
           <SectionHeader title={section.title} />
 
-          {/* Optional pinned group row (if any thread is pinned in this section) */}
-          {section.title === "Today" && (() => {
-            const pinnedThread = section.threads.find(
-              (t) => t.pinned && (t.labels?.length ?? 0) > 0
-            );
-            return pinnedThread ? <PinnedRow thread={pinnedThread} /> : null;
-          })()}
           <div className="divide-y divide-neutral-900 rounded-xl border border-neutral-900 bg-neutral-950/60">
             {section.threads
               .filter((t) => !t.pinned) // hide the special pinned-group placeholder row from main list
@@ -55,7 +53,7 @@ export default function ThreadList({
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="flex items-center justify-between px-2 pb-2 pt-3 sm:px-1">
+    <div className="flex items-center justify-between px-2 pb-1.5 pt-2 sm:px-1">
       <div className="text-sm font-medium text-neutral-300">{title}</div>
       {/* Right-side subtle controls placeholder */}
       <div className="text-xs text-neutral-600"> </div>
@@ -63,17 +61,17 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function PinnedRow({ thread }: { thread: Thread }) {
+function PinnedRow({ labels }: { labels: string[] }) {
   return (
     <div className="mb-2 overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950">
-      <div className="flex items-center gap-2 bg-white/5 px-3 py-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900">
-          <Star className="h-3.5 w-3.5 text-yellow-400" />
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+        <div
+          className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900"
+          aria-hidden="true"
+        >
+          <Star className="h-3 w-3 text-yellow-400" />
         </div>
-        <div className="text-sm text-neutral-300">Pinned</div>
-      </div>
-      <div className="flex flex-wrap gap-2 px-3 py-2">
-        {(thread.labels ?? []).map((label) => (
+        {labels.map((label) => (
           <span
             key={label}
             className="inline-flex items-center rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-neutral-300"

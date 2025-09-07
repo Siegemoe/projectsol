@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Mail, Minus, X, RefreshCcw, SlidersHorizontal, PencilLine } from "lucide-react";
 import type { ProviderId, Thread, ThreadSection } from "../types";
 import { providerList, providers } from "../providers";
-import { getNewSenders, getSections } from "../data";
+import { getSections, getNewSenders } from "../data";
 import MailSidebar from "./MailSidebar";
-import MailToolbar from "./MailToolbar";
 import NewSendersRow from "./NewSendersRow";
 import ThreadList from "./ThreadList";
 import PreviewPane from "./PreviewPane";
 import { useRouter } from "next/navigation";
+import { useDragResize } from "@/hooks/useDragResize";
+import { normalizeSearch } from "@/lib/sanitize";
 
 type Folder = Thread["folder"];
 
@@ -64,94 +65,15 @@ export default function EmailWindow({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newSenders, setNewSenders] = useState(() => getNewSenders("gmail"));
 
-  // Persisted preview width (resizable)
-  const [previewWidth, setPreviewWidth] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const v = parseInt(localStorage.getItem("mail:previewWidth") || "", 10);
-      if (!Number.isNaN(v)) {
-        return Math.min(MAX_PREVIEW, Math.max(MIN_PREVIEW, v));
-      }
-    }
-    return DEFAULT_PREVIEW;
+  // Preview width via reusable drag-resize hook
+  const { width: previewWidth, setWidth: setPreviewWidth, onResizeStart } = useDragResize({
+    initial: DEFAULT_PREVIEW,
+    min: MIN_PREVIEW,
+    max: MAX_PREVIEW,
+    storageKey: "mail:previewWidth",
+    reverse: true,
   });
-  useEffect(() => {
-    try {
-      localStorage.setItem("mail:previewWidth", String(previewWidth));
-    } catch {}
-  }, [previewWidth]);
 
-  // Simple drag-to-resize for preview pane
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  // Store stable listener references so we can reliably remove them on unmount or mouseup/touchend
-  const moveListenerRef = useRef<((ev: MouseEvent | TouchEvent) => void) | null>(null);
-  const upListenerRef = useRef<((ev: MouseEvent | TouchEvent) => void) | null>(null);
-
-  function onResizeStart(e: React.MouseEvent | React.TouchEvent) {
-    const clientX =
-      "touches" in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
-    dragRef.current = { startX: clientX, startWidth: previewWidth };
-
-    // Define and store listeners in refs, using the same references for add/remove
-    moveListenerRef.current = (ev: MouseEvent | TouchEvent) => {
-      const x =
-        ev instanceof TouchEvent
-          ? ev.touches[0]?.clientX ?? dragRef.current!.startX
-          : (ev as MouseEvent).clientX;
-      const dx = x - dragRef.current!.startX;
-      // Reverse behavior: dragging RIGHT should DECREASE preview width (previously inverted)
-      const next = Math.min(
-        MAX_PREVIEW,
-        Math.max(MIN_PREVIEW, dragRef.current!.startWidth - dx)
-      );
-      setPreviewWidth(next);
-      // prevent passive scrolling on touch
-      (ev as any).preventDefault?.();
-    };
-
-    upListenerRef.current = () => {
-      const move = moveListenerRef.current as any;
-      const up = upListenerRef.current as any;
-      if (move) {
-        window.removeEventListener("mousemove", move);
-        window.removeEventListener("touchmove", move);
-      }
-      if (up) {
-        window.removeEventListener("mouseup", up);
-        window.removeEventListener("touchend", up);
-      }
-      dragRef.current = null;
-      // Clear refs to avoid stale handlers
-      moveListenerRef.current = null;
-      upListenerRef.current = null;
-    };
-
-    // Attach listeners using the stored references
-    window.addEventListener("mousemove", moveListenerRef.current as any, { passive: false } as any);
-    window.addEventListener("touchmove", moveListenerRef.current as any, { passive: false } as any);
-    window.addEventListener("mouseup", upListenerRef.current as any);
-    window.addEventListener("touchend", upListenerRef.current as any);
-
-    e.preventDefault();
-  }
-
-  // Ensure global listeners are removed if the component unmounts mid-drag
-  useEffect(() => {
-    return () => {
-      const move = moveListenerRef.current as any;
-      const up = upListenerRef.current as any;
-      if (move) {
-        window.removeEventListener("mousemove", move);
-        window.removeEventListener("touchmove", move);
-      }
-      if (up) {
-        window.removeEventListener("mouseup", up);
-        window.removeEventListener("touchend", up);
-      }
-      dragRef.current = null;
-      moveListenerRef.current = null;
-      upListenerRef.current = null;
-    };
-  }, []);
 
   // Load mock sections whenever provider/folder changes
   useEffect(() => {
@@ -261,16 +183,61 @@ export default function EmailWindow({
             : "flex h-full w-full flex-col overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl"
         }
       >
-        {/* Title bar (no traffic-light dots). Keep compact label and top-right controls */}
-        <div className="flex items-center gap-2 border-b border-neutral-900 px-3 py-2">
+        {/* Title bar with inline controls */}
+        <div className="flex items-center gap-3 border-b border-neutral-900 px-3 py-2">
           <div className="flex items-center gap-2 text-sm text-neutral-400">
             <Mail className="h-4 w-4 text-neutral-300" />
             <span className="text-neutral-200">Mail</span>
             <span className="text-neutral-500">/</span>
             <span className="text-neutral-400 capitalize">{folder}</span>
+            <span className="hidden sm:inline text-xs text-neutral-500 ml-3">
+              {day} <span className="mx-1">•</span> {full}
+            </span>
           </div>
+
+          {/* Search */}
+          <div className="ml-3 flex min-w-[140px] items-center">
+            <label htmlFor="mail-search" className="sr-only">Search mail</label>
+            <input
+              id="mail-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(normalizeSearch(e.target.value))}
+              placeholder="Search mail"
+              enterKeyHint="search"
+              className="w-40 rounded-lg border border-neutral-900 bg-neutral-900/60 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-700 sm:w-56"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              title="Refresh"
+              aria-label="Refresh"
+              onClick={() => setSections(getSections(providerId, folder))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            >
+              <RefreshCcw className="h-4 w-4 text-neutral-300" />
+            </button>
+            <button
+              title="Filter"
+              aria-label="Filter"
+              onClick={() => {}}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            >
+              <SlidersHorizontal className="h-4 w-4 text-neutral-300" />
+            </button>
+            <button
+              title="Compose"
+              aria-label="Compose"
+              onClick={() => {}}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            >
+              <PencilLine className="h-4 w-4 text-neutral-300" />
+            </button>
+          </div>
+
           <div className="ml-auto flex items-center gap-2">
-            {/* Keep minimize for symmetry; no-op for now */}
             <button
               type="button"
               className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
@@ -303,20 +270,6 @@ export default function EmailWindow({
 
           {/* Main column */}
           <div className="flex min-w-0 flex-1 flex-col border-r border-neutral-900">
-            <MailToolbar
-              day={day}
-              date={full}
-              providerId={providerId}
-              onProviderChange={setProviderId}
-              query={query}
-              onQueryChange={setQuery}
-              actions={[
-                { label: "Refresh", icon: RefreshCcw, onClick: () => setSections(getSections(providerId, folder)) },
-                { label: "Filter", icon: SlidersHorizontal, onClick: () => {} },
-                { label: "Compose", icon: PencilLine, onClick: () => {} },
-              ]}
-              newSendersCount={newSenders.length}
-            />
 
             {/* New senders cards */}
             <div className="px-3 pb-2 pt-1 sm:px-4">
@@ -324,7 +277,7 @@ export default function EmailWindow({
             </div>
 
             {/* Thread list */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3 pt-1 sm:px-3 scroll-hover">
+            <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2 pt-1 sm:px-3 scroll-hover">
               <ThreadList
                 sections={filtered}
                 selectedId={selectedId}

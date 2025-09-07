@@ -1,3 +1,84 @@
+# Security Overview (Frontend & API)
+
+This section summarizes application-level hardening implemented in this repo. The Supabase runbook remains below for database-level guidance.
+
+## Global Security Headers (set in next.config.ts)
+
+- Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+- Cross-Origin-Opener-Policy: same-origin
+- Cross-Origin-Embedder-Policy: require-corp
+- Cross-Origin-Resource-Policy: same-site
+- X-DNS-Prefetch-Control: off
+- Content-Security-Policy (CSP):
+  - default-src 'self'
+  - script-src 'self'
+  - style-src 'self' 'unsafe-inline'
+  - img-src 'self' data: blob:
+  - font-src 'self' data:
+  - connect-src 'self' https://openrouter.ai https://api.openai.com https://*.supabase.co
+  - frame-ancestors 'none'
+  - object-src 'none'
+  - base-uri 'self'
+  - form-action 'self'
+
+Notes:
+- If you add third-party analytics/telemetry/CDN/Sentry, update the CSP directives accordingly.
+- COEP/COOP are enabled; embedding in iframes is blocked via frame-ancestors 'none'.
+
+## Edge API Hardening (/api/sol-chat)
+
+- Input validation:
+  - messages must be an array of { role: 'user'|'assistant', content: string }
+  - MAX_MESSAGES=40, MAX_CONTENT_CHARS=10k, MAX_TOTAL_CHARS=50k
+  - temperature clamped to [0, 2]
+  - system prompt accepted but trimmed to 5k
+- Model allowlist:
+  - Restricted to OPENROUTER_ALLOWED_MODELS (default: deepseek/deepseek-chat)
+- Authentication (optional):
+  - REQUIRE_AUTH_FOR_API=1 enforces Supabase-authenticated user
+- Rate limiting (optional):
+  - RATE_LIMIT_ENABLED=1 enables in-memory sliding-window limiter (Edge best-effort)
+  - 30 requests / 5 minutes per userId (if authenticated) or per IP
+- Error handling:
+  - Upstream error bodies not leaked; we return status and requestId where available
+- Runtime:
+  - Edge runtime; uses @supabase/ssr with next/headers cookies()
+
+## Environment Flags
+
+Set in Vercel → Project → Settings → Environment Variables (mirror to .env.local for local dev):
+- REQUIRE_AUTH_FOR_API: 0|1 — require Supabase-authenticated user for protected APIs
+- RATE_LIMIT_ENABLED: 0|1 — enable in-memory rate limiter on Edge routes
+- OPENROUTER_ALLOWED_MODELS: CSV of allowed models (e.g., deepseek/deepseek-chat)
+
+## Repo Hygiene and Secrets
+
+- Never commit .env.local (already .gitignore'd)
+- Use .env.example for placeholders only
+- Public keys under NEXT_PUBLIC_* are expected to be client-visible
+- Archive and one-off files:
+  - All non-production demo/testing files should live under archive/
+  - Current index is maintained at archive/README.md
+  - The /demo route has been disabled and now redirects to /
+- Secret scanning:
+  - Ad-hoc check: search for patterns like `sk-` or provider-specific tokens before pushing
+
+## How to enable the strictest posture in production
+
+1) Set env flags:
+   - REQUIRE_AUTH_FOR_API=1
+   - RATE_LIMIT_ENABLED=1
+   - OPENROUTER_ALLOWED_MODELS to your intended allowlist
+2) Confirm Vercel has all server-only secrets (OPENROUTER_API_KEY, SITE_URL)
+3) Validate that CSP covers all enabled services (analytics/telemetry/CDN)
+4) Redeploy
+
+---
+
 # Supabase Security Remediation Runbook
 
 This runbook documents fixes for the following Supabase security warnings:

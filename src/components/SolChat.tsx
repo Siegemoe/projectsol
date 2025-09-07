@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import EmailWindow from "@/app/app/tools/email/components/EmailWindow";
+import { useStreamedChat } from "@/hooks/useStreamedChat";
+import { coerceFolder } from "@/lib/sanitize";
 
 type Role = "user" | "assistant";
 type Message = { role: Role; content: string };
@@ -29,6 +31,7 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const { startStream } = useStreamedChat(apiPath);
 
   // Keep messages scrolled to bottom when they change
   useEffect(() => {
@@ -55,7 +58,8 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
     const handler = (e: Event) => {
       const anyEvt = e as CustomEvent<{ open?: boolean; folder?: Folder }>;
       const detail = anyEvt?.detail || {};
-      if (detail.folder) setEmailFolder(detail.folder);
+      if (detail.folder)
+        setEmailFolder(coerceFolder(typeof detail.folder === "string" ? detail.folder : null, "inbox"));
       if (detail.open === false) setEmailOpen(false);
       else setEmailOpen(true);
     };
@@ -70,8 +74,8 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
       const url = new URL(window.location.href);
       const shouldOpen = url.searchParams.get("email");
       if (shouldOpen === "1") {
-        const f = url.searchParams.get("folder") as Folder | null;
-        if (f) setEmailFolder(f);
+        const f = url.searchParams.get("folder");
+        setEmailFolder(coerceFolder(f, "inbox"));
         setEmailOpen(true);
         // Clean the URL
         const params = new URLSearchParams(url.searchParams);
@@ -82,6 +86,15 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
       }
     } catch {}
   }, []);
+
+  // Broadcast overlay open/close state to the sidebar so it can expand/collapse the Email menu
+  useEffect(() => {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("sol:email-open-changed", { detail: { open: emailOpen } } as any)
+      );
+    } catch {}
+  }, [emailOpen]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -124,63 +137,18 @@ export default function SolChat({ title = "Sol", apiPath = "/api/sol-chat" }: So
     };
 
     try {
-      const res = await fetch(apiPath, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, model, temperature, system }),
+      await startStream({
+        messages: nextMessages,
+        model,
+        temperature,
+        system,
+        onOpen: () => {
+          setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+        },
+        onToken: (token) => {
+          appendToken(token);
+        },
       });
-
-      if (!res.ok || !res.body) {
-        const errText = await res.text().catch(() => "");
-        throw new Error(errText || "Proxy request failed");
-      }
-
-      // Add a placeholder assistant message for streaming
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      // Parse SSE stream
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-      let doneStreaming = false;
-
-      while (!doneStreaming) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // Split by double newlines between SSE events
-        const events = buffer.split("\n\n");
-        buffer = events.pop() || "";
-
-        for (const event of events) {
-          const lines = event.split("\n");
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-            if (!trimmedLine.startsWith("data:")) continue;
-            const data = trimmedLine.slice(5).trim();
-            if (!data) continue;
-            if (data === "[DONE]") {
-              doneStreaming = true;
-              break;
-            }
-            try {
-              const json = JSON.parse(data);
-              // OpenAI/OpenRouter-style delta
-              const delta =
-                json?.choices?.[0]?.delta?.content ??
-                json?.choices?.[0]?.message?.content ??
-                "";
-              if (typeof delta === "string" && delta.length > 0) {
-                appendToken(delta);
-              }
-            } catch {
-              // Non-JSON ping/keepalive, ignore
-            }
-          }
-          if (doneStreaming) break;
-        }
-      }
     } catch (err: any) {
       // If streaming failed, append an error assistant message
       setMessages((prev) => [

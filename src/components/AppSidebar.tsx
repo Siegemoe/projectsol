@@ -103,7 +103,7 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
   // Expand/collapse Email submenu
-  const [emailExpanded, setEmailExpanded] = useState<boolean>(true);
+  const [emailExpanded, setEmailExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -139,6 +139,22 @@ export default function AppSidebar() {
       return next;
     });
   }
+
+  // Keep Email submenu expansion in sync with overlay open/close
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const open = !!(e as CustomEvent<{ open?: boolean }>).detail?.open;
+      setEmailExpanded(!!open);
+    };
+    window.addEventListener("sol:email-open-changed", handler as EventListener);
+    return () =>
+      window.removeEventListener("sol:email-open-changed", handler as EventListener);
+  }, []);
+
+  // Collapse Email folder list when not on chat route
+  useEffect(() => {
+    if (!pathname?.startsWith("/app/chat")) setEmailExpanded(false);
+  }, [pathname]);
 
   const top: NavItem[] = [
     { label: "New chat", href: "/app/chat" as Route, icon: MessageSquarePlus },
@@ -263,7 +279,7 @@ export default function AppSidebar() {
                   label: "Email",
                   icon: Mail,
                   onClick: () => {
-                    setEmailExpanded((v) => !v);
+                    setEmailExpanded(true);
                     openEmail("inbox");
                   },
                 }}
