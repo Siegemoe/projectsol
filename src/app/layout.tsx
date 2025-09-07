@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import SignInLink from "@/components/SignInLink";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "ProjectSol — Memory-first AI for real work",
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
