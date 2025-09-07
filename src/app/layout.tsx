@@ -6,6 +6,8 @@ import type { Route } from "next";
 export const metadata: Metadata = {
   title: "ProjectSol — Memory-first AI for real work",
   description: "Memory-first AI platform focused on structured memory, speed, and clean UX.",
+  // Used for resolving absolute URLs for OG/Twitter images in production
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
   openGraph: {
     title: "ProjectSol — Memory-first AI for real work",
     description: "Memory-first AI platform focused on structured memory, speed, and clean UX.",
