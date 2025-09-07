@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 // Validates that a "next" value is a safe, internal path to avoid open redirects
 function isSafeNext(next: string | null | undefined): next is string {
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
   const requestedNext = url.searchParams.get("next");
   const safeNext = isSafeNext(requestedNext) ? requestedNext : "/app";
 
-  // Prepare a redirect response that we'll return after exchanging the code; we attach cookies to this response
-  const res = NextResponse.redirect(new URL(safeNext, url.origin));
+  // Capture cookie mutations so we can apply them to whichever response we return
+  const cookieOps: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,11 +26,11 @@ export async function GET(req: NextRequest) {
     {
       cookies: {
         get: (name: string) => req.cookies.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          res.cookies.set({ name, value, ...options });
+        set: (name: string, value: string, options: CookieOptions) => {
+          cookieOps.push({ name, value, options });
         },
-        remove: (name: string, options: any) => {
-          res.cookies.set({ name, value: "", ...options });
+        remove: (name: string, options: CookieOptions) => {
+          cookieOps.push({ name, value: "", options });
         },
       },
     }
@@ -41,8 +41,11 @@ export async function GET(req: NextRequest) {
     const signinUrl = new URL("/signin", url.origin);
     signinUrl.searchParams.set("error", "Missing OAuth code");
     signinUrl.searchParams.set("next", safeNext);
-    return NextResponse.redirect(signinUrl);
+    const redirect = NextResponse.redirect(signinUrl, 303);
+    for (const op of cookieOps) redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
+    return redirect;
   }
+
   // Exchange the auth code present in the URL for a session and set auth cookies
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
@@ -50,9 +53,13 @@ export async function GET(req: NextRequest) {
     const signinUrl = new URL("/signin", url.origin);
     signinUrl.searchParams.set("error", error.message ?? "OAuth error");
     signinUrl.searchParams.set("next", safeNext);
-    return NextResponse.redirect(signinUrl);
+    const redirect = NextResponse.redirect(signinUrl, 303);
+    for (const op of cookieOps) redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
+    return redirect;
   }
 
   // On success, continue to the original destination
-  return res;
+  const success = NextResponse.redirect(new URL(safeNext, url.origin), 303);
+  for (const op of cookieOps) success.cookies.set({ name: op.name, value: op.value, ...op.options });
+  return success;
 }

@@ -32,8 +32,8 @@ export async function middleware(req: NextRequest) {
 
   if (!user) {
     const next = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search);
-    return NextResponse.redirect(new URL(`/signin?next=${next}`, req.url));
-  }
+    const url = new URL(`/signin?next=${next}`, req.url);
+    return NextResponse.redirect(url, { headers: res.headers });  }
 
   return res;
 }
