@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Route } from "next";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/app";
   const initialError = searchParams.get("error");
@@ -125,5 +125,20 @@ export default function SignInPage() {
         </Link>
       </div>
     </section>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="mx-auto max-w-sm space-y-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+          <div className="text-sm text-neutral-400">Loading…</div>
+        </section>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }
