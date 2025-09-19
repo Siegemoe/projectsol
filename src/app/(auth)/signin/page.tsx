@@ -16,6 +16,7 @@ function SignInContent() {
   const [err, setErr] = useState<string | null>(initialError);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const disabled = !email || sent;
+  const SHOW_MAGIC = (process.env.NEXT_PUBLIC_SHOW_MAGIC_LINK === "1");
 
   const baseUrl =
     (typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL) ??
@@ -79,42 +80,50 @@ function SignInContent() {
         </button>
       </div>
 
-      {/* Divider */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-neutral-800" />
-        <div className="text-xs text-neutral-500">or</div>
-        <div className="h-px flex-1 bg-neutral-800" />
-      </div>
+      {SHOW_MAGIC && (
+        <>
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-neutral-800" />
+            <div className="text-xs text-neutral-500">or</div>
+            <div className="h-px flex-1 bg-neutral-800" />
+          </div>
+        </>
+      )}
 
-      {/* Magic link section */}
-      {sent ? (
-        <div className="rounded-xl border border-neutral-900 bg-neutral-950 p-4">
-          <p className="text-neutral-300">
-            A magic link has been sent to <span className="text-neutral-100">{email}</span>. Check your email to continue.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <label className="block text-sm text-neutral-400" htmlFor="email">
-            Email address
-          </label>
-          <input
-            id="email"
-            className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 outline-none ring-0 focus:border-neutral-700"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-          <button
-            onClick={send}
-            disabled={disabled}
-            className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm disabled:opacity-50 hover:bg-white/15"
-          >
-            Send magic link
-          </button>
-        </div>
+      {SHOW_MAGIC && (
+        <>
+          {/* Magic link section */}
+          {sent ? (
+            <div className="rounded-xl border border-neutral-900 bg-neutral-950 p-4">
+              <p className="text-neutral-300">
+                A magic link has been sent to <span className="text-neutral-100">{email}</span>. Check your email to continue.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <label className="block text-sm text-neutral-400" htmlFor="email">
+                Email address
+              </label>
+              <input
+                id="email"
+                className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 outline-none ring-0 focus:border-neutral-700"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(value => e.target.value)}
+                autoComplete="email"
+              />
+              <button
+                onClick={send}
+                disabled={disabled}
+                className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm disabled:opacity-50 hover:bg-white/15"
+              >
+                Send magic link
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {err && <p className="text-sm text-red-400">{err}</p>}

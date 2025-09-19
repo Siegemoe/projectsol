@@ -3,6 +3,7 @@ export const runtime = "edge";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkRateLimit, envEnabled } from "@/lib/rateLimit";
+import { isAllowlisted } from "@/lib/allowlist";
 
 type Role = "user" | "assistant";
 type ChatMessage = { role: Role; content: string };
@@ -110,14 +111,20 @@ export async function POST(req: Request) {
 
   const { messages, model, temperature, system } = body ?? {};
 
-  // Optional auth enforcement (off by default so this is non-breaking)
-  const REQUIRE_AUTH = envEnabled(process.env.REQUIRE_AUTH_FOR_API, false);
+  // Default: require auth for this API (can be disabled explicitly via REQUIRE_AUTH_FOR_API=0)
+  const REQUIRE_AUTH = envEnabled(process.env.REQUIRE_AUTH_FOR_API, true);
   let userId: string | null = null;
   if (REQUIRE_AUTH) {
     const user = await getSupabaseUser();
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!isAllowlisted(user.email)) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
         headers: { "Content-Type": "application/json" },
       });
     }

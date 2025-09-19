@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Route } from "next";
 import {
   MessageSquarePlus,
@@ -13,7 +13,6 @@ import {
   Workflow,
   FolderPlus,
   Settings,
-  LogOut,
   User2,
   ChevronLeft,
   ChevronRight,
@@ -32,6 +31,12 @@ type NavItem = {
   icon?: React.ComponentType<{ className?: string }>;
   onClick?: () => void;
   disabled?: boolean;
+};
+
+type UserInfo = {
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
 };
 
 function Item({
@@ -93,7 +98,7 @@ function SubItem({
   );
 }
 
-export default function AppSidebar() {
+export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -104,6 +109,10 @@ export default function AppSidebar() {
 
   // Expand/collapse Email submenu
   const [emailExpanded, setEmailExpanded] = useState<boolean>(false);
+
+  // Profile dropdown state
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const footerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -155,6 +164,19 @@ export default function AppSidebar() {
   useEffect(() => {
     if (!pathname?.startsWith("/app/chat")) setEmailExpanded(false);
   }, [pathname]);
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuOpen) return;
+      const target = e.target as HTMLElement | null;
+      if (footerRef.current && target && !footerRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [menuOpen]);
 
   const top: NavItem[] = [
     { label: "New chat", href: "/app/chat" as Route, icon: MessageSquarePlus },
@@ -209,7 +231,7 @@ export default function AppSidebar() {
 
   const footerActions: NavItem[] = [
     { label: "Settings", href: "/app/settings" as Route, icon: Settings },
-    { label: "Sign out", href: "/signout" as Route, icon: LogOut },
+    // Removed GET link to /signout; sign-out is handled via POST in the profile menu below.
   ];
 
   function isActive(href?: string) {
@@ -217,6 +239,15 @@ export default function AppSidebar() {
     if (href === "/app/chat" && pathname?.startsWith("/app/chat")) return true;
     return pathname === href;
   }
+
+  const initials = useMemo(() => {
+    const n = initialUser?.name?.trim() || "";
+    if (!n) return "";
+    const parts = n.split(/\s+/);
+    const a = parts[0]?.[0] || "";
+    const b = parts[1]?.[0] || "";
+    return (a + b).toUpperCase();
+  }, [initialUser?.name]);
 
   return (
     <aside className={`flex h-full ${collapsed ? "w-12" : "w-[13.5rem]"} flex-col bg-neutral-950`}>
@@ -333,14 +364,58 @@ export default function AppSidebar() {
 
         {/* Footer */}
         <div className={`sticky bottom-0 border-t border-neutral-900 bg-neutral-950 px-3 py-3 ${collapsed ? "hidden" : ""}`}>
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900">
-              <User2 className="h-4 w-4 text-neutral-400" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm text-neutral-200">Profile</div>
-              <div className="text-xs text-neutral-500">Signed in</div>
-            </div>
+          <div
+            ref={footerRef}
+            className="relative"
+          >
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="mb-2 flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 hover:bg-neutral-900"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900 overflow-hidden">
+                {initialUser?.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={initialUser.avatarUrl}
+                    alt={initialUser.name || "Profile"}
+                    className="h-7 w-7 rounded-full object-cover"
+                  />
+                ) : initials ? (
+                  <span className="text-[11px] font-medium text-neutral-300">{initials}</span>
+                ) : (
+                  <User2 className="h-4 w-4 text-neutral-400" />
+                )}
+              </div>
+              <div className="flex-1 text-left">
+                <div className="text-sm text-neutral-200 truncate">
+                  {initialUser?.name ?? "Profile"}
+                </div>
+                <div className="text-xs text-neutral-500 truncate">
+                  {initialUser?.email ?? "Signed in"}
+                </div>
+              </div>
+            </button>
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute bottom-12 right-0 z-30 min-w-[12rem] rounded-xl border border-neutral-900 bg-neutral-950 shadow"
+              >
+                <div className="py-1">
+                  <form method="post" action="/signout">
+                    <button
+                      type="submit"
+                      className="w-full px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-900 rounded-lg"
+                    >
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

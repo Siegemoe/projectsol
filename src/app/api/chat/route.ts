@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL } from "@/lib/env";
+import { supabaseServer } from "@/lib/supabase-server";
+import { isAllowlisted } from "@/lib/allowlist";
 
 export async function POST(req: NextRequest) {
+  // Enforce authenticated and allowlisted users for chat API
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isAllowlisted(user.email ?? null)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   if (!OPENAI_API_KEY) {
     return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
   }

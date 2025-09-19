@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isAllowlisted } from "@/lib/allowlist";
 
 // Protect the /app route tree. Redirect unauthenticated users to /signin.
 export async function middleware(req: NextRequest) {
@@ -33,7 +34,14 @@ export async function middleware(req: NextRequest) {
   if (!user) {
     const next = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search);
     const url = new URL(`/signin?next=${next}`, req.url);
-    return NextResponse.redirect(url, { headers: res.headers });  }
+    return NextResponse.redirect(url, { headers: res.headers });
+  }
+
+  // Alpha allowlist gate: only allow invited users into /app
+  if (!isAllowlisted(user.email)) {
+    const url = new URL(`/not-invited`, req.url);
+    return NextResponse.redirect(url, { headers: res.headers });
+  }
 
   return res;
 }
