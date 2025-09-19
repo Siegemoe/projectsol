@@ -1,16 +1,18 @@
 export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { checkRateLimit, envEnabled } from "@/lib/rateLimit";
 import { isAllowlisted } from "@/lib/allowlist";
 import { getUserOAuthClient, gmailFromOAuth, mapGmailThreadToThread } from "@/lib/google/auth";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const url = new URL(req.url);
   const id = params.id;
   const RATE_LIMIT_ON = envEnabled(process.env.RATE_LIMIT_ENABLED, true);
 
+  const c = await cookies();
   // Capture cookie mutations to apply to final response
   const cookieOps: { name: string; value: string; options: CookieOptions }[] = [];
   const supabase = createServerClient(
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
+        get: (name: string) => c.get(name)?.value,
         set: (name: string, value: string, options: CookieOptions) => {
           cookieOps.push({ name, value, options });
         },
