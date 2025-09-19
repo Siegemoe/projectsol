@@ -382,7 +382,18 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
           >
             <button
               type="button"
-              onClick={() => setMenuOpen((v) => !v)}
+              onClick={() => {
+                if (!initialUser) {
+                  try {
+                    const next = typeof window !== "undefined" ? window.location.pathname + window.location.search : (pathname ?? "/app");
+                    router.push((`/signin?next=${encodeURIComponent(next)}`) as Route);
+                  } catch {
+                    router.push(("/signin" as Route));
+                  }
+                  return;
+                }
+                setMenuOpen((v) => !v);
+              }}
               className="mb-2 flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 hover:bg-neutral-900"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
@@ -406,12 +417,12 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
                   {initialUser?.name ?? "Profile"}
                 </div>
                 <div className="text-xs text-neutral-500 truncate">
-                  {initialUser?.email ?? "Signed in"}
+                  {initialUser?.email ?? "Signed out"}
                 </div>
               </div>
             </button>
 
-            {menuOpen && (
+            {menuOpen && initialUser && (
               <div
                 role="menu"
                 className="absolute bottom-12 right-0 z-30 min-w-[12rem] rounded-xl border border-neutral-900 bg-neutral-950 shadow"
