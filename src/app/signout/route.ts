@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
-export async function POST() {
+export async function POST(req: Request) {
   const cookieStore = await cookies();
 
-  // Prepare redirect back to home
-  const redirectTo = new URL("/", process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000");
-  const res = NextResponse.redirect(redirectTo);
+  // Redirect to sign-in on the same origin to ensure middleware flow re-engages
+  const current = new URL(req.url);
+  const res = NextResponse.redirect(new URL("/signin", current.origin), 303);
 
   // Construct a Supabase server client with cookie read/write hooks
   const supabase = createServerClient(

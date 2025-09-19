@@ -5,6 +5,7 @@ import type { Route } from "next";
 import SignInLink from "@/components/SignInLink";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
+import { supabaseServer } from "@/lib/supabase-server";
 
 export const metadata: Metadata = {
   title: "ProjectSol — Memory-first AI for real work",
@@ -22,7 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
@@ -34,16 +40,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <nav className="flex items-center gap-3">
               <Link href={"/" as Route} className="text-sm hover:text-neutral-300">Home</Link>
-              <Suspense
-                fallback={
-                  <Link href={"/signin" as Route} className="text-sm hover:text-neutral-300">
-                    Sign in
-                  </Link>
-                }
-              >
-                <SignInLink className="text-sm hover:text-neutral-300">Sign in</SignInLink>
-              </Suspense>
-              <Link href={"/app" as Route} className="text-sm hover:text-neutral-300">App</Link>
+              {!user && (
+                <Suspense
+                  fallback={
+                    <Link href={"/signin" as Route} className="text-sm hover:text-neutral-300">
+                      Sign in
+                    </Link>
+                  }
+                >
+                  <SignInLink className="text-sm hover:text-neutral-300">Sign in</SignInLink>
+                </Suspense>
+              )}
+              {/* Removed "App" link per request */}
               <Link href={"/app/chat" as Route} className="text-sm hover:text-neutral-300">Chat</Link>
               <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
                 {process.env.NEXT_PUBLIC_APP_ENV ?? "development"}

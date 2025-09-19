@@ -249,6 +249,18 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
     return (a + b).toUpperCase();
   }, [initialUser?.name]);
 
+  async function handleSignOut() {
+    try {
+      setMenuOpen(false);
+      await fetch("/signout", { method: "POST" });
+    } catch {
+      // ignore fetch errors; rely on hard navigation below
+    }
+    if (typeof window !== "undefined") {
+      window.location.assign("/signin");
+    }
+  }
+
   return (
     <aside className={`flex h-full ${collapsed ? "w-12" : "w-[13.5rem]"} flex-col bg-neutral-950`}>
       {/* Sticky brand/section */}
@@ -405,14 +417,13 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
                 className="absolute bottom-12 right-0 z-30 min-w-[12rem] rounded-xl border border-neutral-900 bg-neutral-950 shadow"
               >
                 <div className="py-1">
-                  <form method="post" action="/signout">
-                    <button
-                      type="submit"
-                      className="w-full px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-900 rounded-lg"
-                    >
-                      Sign out
-                    </button>
-                  </form>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-900 rounded-lg"
+                  >
+                    Sign out
+                  </button>
                 </div>
               </div>
             )}
