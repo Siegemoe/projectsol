@@ -6,7 +6,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://openrouter.ai https://api.openai.com https://*.supabase.co",
+  "connect-src 'self' https://openrouter.ai https://api.openai.com https://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

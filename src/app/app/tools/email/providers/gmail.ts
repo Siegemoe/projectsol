@@ -1,23 +1,50 @@
 "use client";
 
-import { Provider, Thread, ThreadSection } from "../types";
+import type { Provider, Thread, ThreadSection } from "../types";
 import { getSections } from "../data";
 
-function delay<T>(value: T, ms = 250): Promise<T> {
+function delay<T>(value: T, ms = 200): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+async function getJSON<T>(url: string): Promise<T> {
+  const r = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Accept": "application/json" },
+    cache: "no-store",
+  });
+  if (!r.ok) {
+    const text = await r.text().catch(() => "");
+    throw new Error(`HTTP ${r.status} ${r.statusText}: ${text}`);
+  }
+  return (await r.json()) as T;
 }
 
 export const gmailProvider: Provider = {
   id: "gmail",
   label: "Gmail",
   async listSections(folder: Thread["folder"]): Promise<ThreadSection[]> {
-    const sections = getSections("gmail", folder);
-    return delay(sections, 200);
+    try {
+      const sections = await getJSON<ThreadSection[]>(
+        `/api/gmail/threads?folder=${encodeURIComponent(folder)}`
+      );
+      // Server already grouped into sections
+      return sections;
+    } catch {
+      // Fallback to mock data when not connected or on errors
+      return delay(getSections("gmail", folder), 150);
+    }
   },
   async getThread(id: string) {
-    // For visuals only: search across sections and return first match
-    const sections = getSections("gmail", "inbox");
-    const all = sections.flatMap((s) => s.threads);
-    return delay(all.find((t) => t.id === id) ?? null, 120);
+    try {
+      const thread = await getJSON<Thread>(`/api/gmail/threads/${encodeURIComponent(id)}`);
+      return thread ?? null;
+    } catch {
+      // Fallback: search across mock inbox
+      const sections = getSections("gmail", "inbox");
+      const all = sections.flatMap((s) => s.threads);
+      return delay(all.find((t) => t.id === id) ?? null, 120);
+    }
   },
 };

@@ -112,6 +112,48 @@ Recommended production flags:
 - RATE_LIMIT_ENABLED=1
 - OPENROUTER_ALLOWED_MODELS=deepseek/deepseek-chat (update to the models you intend to allow)
 
+## Gmail on Vercel
+
+To enable the Gmail integration in Vercel:
+
+1) Google Cloud Console
+- Enable the Gmail API.
+- Configure the OAuth consent screen (add your Google account as a Test user if app is not verified).
+- Create OAuth Client ID (Web).
+- Authorized redirect URIs:
+  - Production: https://YOUR_DOMAIN/api/gmail/callback
+  - Optional staging: https://STAGING_DOMAIN/api/gmail/callback
+  - Note: Google does not allow wildcards for OAuth redirects, so Preview URLs on Vercel will not work unless you use a fixed staging domain.
+
+2) Vercel → Project → Settings → Environment Variables
+- Set for both Preview and Production as needed:
+  - ENABLE_GMAIL=1
+  - GOOGLE_CLIENT_ID=… (from Google Cloud)
+  - GOOGLE_CLIENT_SECRET=… (from Google Cloud)
+  - GOOGLE_OAUTH_REDIRECT_URI=https://YOUR_DOMAIN/api/gmail/callback
+  - ENCRYPTION_KEY=32-byte key in base64 or 64 hex characters (AES-256-GCM)
+- Also ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.
+
+3) Supabase migration
+- Apply supabase/migrations/20250919_gmail_tokens.sql in Supabase SQL Editor (creates public.user_google_tokens with RLS).
+- Confirm Row Level Security is enabled and policy is in place.
+
+4) Deploy
+- Push to main or deploy via Vercel. The Gmail routes run on the Node.js runtime.
+- Headers/CSP already allow Google endpoints (accounts.google.com, oauth2.googleapis.com, www.googleapis.com).
+
+5) Connect
+- Visit /app/settings?tab=connections in your deployed app.
+- Click “Connect Gmail” and complete OAuth consent.
+- The Email tool (Inbox) will render live Gmail threads read-only.
+
+Troubleshooting
+- 400 redirect_uri_mismatch: Update GOOGLE_OAUTH_REDIRECT_URI to exactly match your deployed domain and add same in Google Cloud → OAuth Client.
+- 401 Unauthorized: You must be signed in (middleware protects /app/*). Ensure cookies work with your domain.
+- 403 Forbidden: Email allowlist blocks your account; update src/lib/allowlist.ts or EMAIL_ALLOWLIST env to include your email or domain.
+- 404 Not connected: Connect Gmail first via Settings → Connections.
+- Token storage: Refresh token is encrypted at rest using ENCRYPTION_KEY; rotate the key with care (existing tokens won’t decrypt).
+
 ## Archive
 
 The archive/ folder contains one-off demo/testing files that should not ship as active routes. See archive/README.md for a current index.
