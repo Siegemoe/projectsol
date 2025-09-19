@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import type { Thread } from "../types";
+import { useMemo, useRef, useEffect } from "react";
+import type { Thread, ThreadMessage } from "../types";
 import {
   Reply,
   ReplyAll,
@@ -25,12 +25,66 @@ function IconButton({ label, icon: Icon }: { label: string; icon: LucideIcon }) 
   );
 }
 
-export default function PreviewPane({ thread }: { thread: Thread | null }) {
-  // Compute formatted body HTML unconditionally to satisfy react-hooks/rules-of-hooks
-  const body = thread?.messages?.[0]?.body ?? "";
-  const html = useMemo(() => formatEmailHtml(body), [body]);
+function SafeHtml({
+  html,
+  message,
+}: {
+  html: string;
+  message: ThreadMessage;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  if (!thread) {
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.document.open();
+      iframe.contentWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              /* Basic dark theme styles */
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                background-color: #171717; /* neutral-900 */
+                color: #d4d4d4; /* neutral-300 */
+                padding: 0.5rem;
+                margin: 0;
+                font-size: 14px;
+                line-height: 1.5;
+              }
+              a { color: #a3a3a3; text-decoration: underline; }
+              a:hover { color: #e5e5e5; }
+              img { max-width: 100%; height: auto; }
+            </style>
+          </head>
+          <body>
+            ${html}
+          </body>
+        </html>
+      `);
+      iframe.contentWindow.document.close();
+    }
+  }, [html]);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      sandbox="allow-same-origin" // allows styles, blocks scripts
+      className="h-full w-full border-0"
+      title={`Email from ${message.author.email}`}
+      scrolling="auto"
+    />
+  );
+}
+
+export default function PreviewPane({ thread }: { thread: Thread | null }) {
+  const message = thread?.messages?.[0];
+  const body = message?.body ?? "";
+  const bodyHtml = message?.bodyHtml ?? null;
+  const formattedText = useMemo(() => formatEmailHtml(body), [body]);
+
+  if (!thread || !message) {
     return (
       <div className="flex h-full flex-col">
         <div className="border-b border-neutral-900 px-4 py-3">
@@ -73,7 +127,6 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
             <IconButton label="More" icon={MoreHorizontal} />
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-neutral-200">
             {thread.sender.initials ?? "S"}
@@ -86,20 +139,26 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
       </div>
 
       {/* Content */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 scroll-hover">
-        <div
-          className="text-sm leading-6 text-neutral-300 [&_a]:underline [&_a]:text-neutral-400 hover:[&_a]:text-neutral-300"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-
-        {/* Attachments placeholder */}
-        <div className="mt-6 rounded-xl border border-neutral-900 bg-neutral-950">
-          <div className="flex items-center gap-2 border-b border-neutral-900 px-3 py-2 text-sm text-neutral-300">
-            <Paperclip className="h-4 w-4 text-neutral-400" />
-            Attachments
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {bodyHtml ? (
+          <SafeHtml html={bodyHtml} message={message} />
+        ) : (
+          <div className="overflow-y-auto px-4 py-4 scroll-hover">
+            <div
+              className="text-sm leading-6 text-neutral-300 [&_a]:underline [&_a]:text-neutral-400 hover:[&_a]:text-neutral-300"
+              dangerouslySetInnerHTML={{ __html: formattedText }}
+            />
           </div>
-          <div className="px-3 py-6 text-center text-xs text-neutral-500">No attachments</div>
+        )}
+      </div>
+
+      {/* Attachments placeholder */}
+      <div className="border-t border-neutral-900 bg-neutral-950">
+        <div className="flex items-center gap-2 border-b border-neutral-900 px-3 py-2 text-sm text-neutral-300">
+          <Paperclip className="h-4 w-4 text-neutral-400" />
+          Attachments
         </div>
+        <div className="px-3 py-6 text-center text-xs text-neutral-500">No attachments</div>
       </div>
     </div>
   );

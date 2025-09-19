@@ -210,6 +210,7 @@ export type ThreadMessage = {
   id: string;
   author: Sender;
   body: string;
+  bodyHtml?: string | null;
   sentAt: string; // ISO
 };
 
@@ -264,6 +265,20 @@ function decodeB64Url(data: string | undefined): string {
   // Gmail uses URL-safe base64
   const buf = Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64");
   return buf.toString("utf8");
+}
+
+function findHtmlPart(part?: gmail_v1.Schema$MessagePart | null): string | null {
+  if (!part) return null;
+  if (part.mimeType === "text/html" && part.body?.data) {
+    return decodeB64Url(part.body.data);
+  }
+  if (part.parts) {
+    for (const p of part.parts) {
+      const v = findHtmlPart(p);
+      if (v) return v;
+    }
+  }
+  return null;
 }
 
 function findPlainText(part?: gmail_v1.Schema$MessagePart | null): string {
@@ -341,11 +356,13 @@ export function mapGmailThreadToThread(gThread: gmail_v1.Schema$Thread, folder: 
       avatarUrl: null,
     };
     const body = findPlainText(m.payload) || (m.snippet || "");
+    const bodyHtml = findHtmlPart(m.payload);
     const sentAt = m.internalDate ? new Date(Number(m.internalDate)).toISOString() : new Date().toISOString();
     return {
       id: m.id || crypto.randomUUID(),
       author,
       body,
+      bodyHtml,
       sentAt,
     };
   });

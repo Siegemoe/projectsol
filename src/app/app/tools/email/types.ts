@@ -12,6 +12,7 @@ export type ThreadMessage = {
   id: string;
   author: Sender;
   body: string;
+  bodyHtml?: string | null;
   sentAt: string; // ISO timestamp
 };
 
