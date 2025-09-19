@@ -26,6 +26,10 @@ function IconButton({ label, icon: Icon }: { label: string; icon: LucideIcon }) 
 }
 
 export default function PreviewPane({ thread }: { thread: Thread | null }) {
+  // Compute formatted body HTML unconditionally to satisfy react-hooks/rules-of-hooks
+  const body = thread?.messages?.[0]?.body ?? "";
+  const html = useMemo(() => formatEmailHtml(body), [body]);
+
   if (!thread) {
     return (
       <div className="flex h-full flex-col">
@@ -52,8 +56,6 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
     minute: "2-digit",
   });
 
-  const body = thread.messages[0]?.body || "";
-  const html = useMemo(() => formatEmailHtml(body), [body]);
 
   return (
     <div className="flex h-full flex-col bg-neutral-950">
