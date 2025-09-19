@@ -7,9 +7,10 @@ import { checkRateLimit, envEnabled } from "@/lib/rateLimit";
 import { isAllowlisted } from "@/lib/allowlist";
 import { getUserOAuthClient, gmailFromOAuth, mapGmailThreadToThread } from "@/lib/google/auth";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request) {
   const url = new URL(req.url);
-  const id = params.id;
+  const pathParts = url.pathname.split("/");
+  const id = decodeURIComponent(pathParts[pathParts.length - 1] || "");
   const RATE_LIMIT_ON = envEnabled(process.env.RATE_LIMIT_ENABLED, true);
 
   const c = await cookies();
