@@ -6,7 +6,7 @@ export default function NotInvitedPage() {
     <section className="mx-auto max-w-sm space-y-4">
       <h1 className="text-2xl font-semibold tracking-tight">Access pending</h1>
       <p className="text-neutral-300">
-        You're signed in, but this account isn't part of the gated Alpha yet.
+        You&#39;re signed in, but this account isn&#39;t part of the gated Alpha yet.
       </p>
       <p className="text-neutral-400 text-sm">
         If you believe this is a mistake, contact the team, or try another Google account.
