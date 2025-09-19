@@ -1,6 +1,6 @@
 /**
  * Client-side validation + minimal-safe formatting for email preview bodies.
- * - Escapes HTML
+ * - Escapes HTML entities
  * - Converts Markdown links [text](url) to anchors (http/https only)
  * - Auto-links bare URLs
  * - Converts newlines to paragraphs and <br/>
