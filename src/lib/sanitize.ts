@@ -35,32 +35,31 @@ export function normalizeSearch(input: string, maxLen = 256): string {
 /** Escape HTML entities for safe insertion. */
 export function escapeHtml(s: string): string {
   return (s || "")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, """)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
-
+/** Convert Markdown-style links [text](url) to anchors (after escaping text). */
 /** Convert Markdown-style links [text](url) to anchors (after escaping text). */
 function replaceMarkdownLinks(escaped: string): string {
   // Only allow http/https URLs
   return escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, text, url) => {
     const safeText = text; // already escaped
-    const safeUrl = url;
+    // Escape quotes in URL to prevent attribute breakout
+    const safeUrl = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     return `<a class="underline text-neutral-400 hover:text-neutral-300" href="${safeUrl}" target="_blank" rel="noopener noreferrer nofollow">${safeText}</a>`;
   });
-}
-
+}/** Auto-link bare URLs into anchors (best-effort, http/https only). */
 /** Auto-link bare URLs into anchors (best-effort, http/https only). */
 function linkifyUrls(escaped: string): string {
   const urlRe = /(^|[\s(])((https?:\/\/[^\s<)]+))/g;
   return escaped.replace(urlRe, (_m, prefix, url) => {
-    return `${prefix}<a class="underline text-neutral-400 hover:text-neutral-300" href="${url}" target="_blank" rel="noopener noreferrer nofollow">${url}</a>`;
+    const safeUrl = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    return `${prefix}<a class="underline text-neutral-400 hover:text-neutral-300" href="${safeUrl}" target="_blank" rel="noopener noreferrer nofollow">${safeUrl}</a>`;
   });
-}
-
-/** Convert newlines to <br/> and group paragraphs by blank lines. */
+}/** Convert newlines to <br/> and group paragraphs by blank lines. */
 function nlToHtml(text: string): string {
   const paras = text.split(/\n{2,}/g).map((para) => para.replace(/\n/g, "<br/>"));
   return paras.map((p) => `<p class="mb-3">${p}</p>`).join("");

@@ -31,20 +31,20 @@ export const gmailProvider: Provider = {
       );
       // Server already grouped into sections
       return sections;
-    } catch {
+    } catch (error) {
+      console.warn('Failed to fetch Gmail sections, using mock data:', error);
       // Fallback to mock data when not connected or on errors
       return delay(getSections("gmail", folder), 150);
-    }
-  },
+    }  },
   async getThread(id: string) {
     try {
       const thread = await getJSON<Thread>(`/api/gmail/threads/${encodeURIComponent(id)}`);
-      return thread ?? null;
-    } catch {
-      // Fallback: search across mock inbox
-      const sections = getSections("gmail", "inbox");
-      const all = sections.flatMap((s) => s.threads);
+      return thread;
+    } catch (error) {
+      console.warn('Failed to fetch Gmail thread, using mock data:', error);
+      // Search across all folders since we don't know which folder the thread belongs to
+      const folders: Thread["folder"][] = ["inbox", "sent", "drafts"];
+      const all = folders.flatMap(f => getSections("gmail", f).flatMap(s => s.threads));
       return delay(all.find((t) => t.id === id) ?? null, 120);
-    }
-  },
+    }  },
 };

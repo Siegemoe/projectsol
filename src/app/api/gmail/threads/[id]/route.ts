@@ -78,10 +78,25 @@ export async function GET(req: Request) {
       for (const op of cookieOps) resp.cookies.set({ name: op.name, value: op.value, ...op.options });
       return resp;
     }
-    const resp = NextResponse.json(mapped, { status: 200, headers: { ...limitHeaders } });
-    for (const op of cookieOps) resp.cookies.set({ name: op.name, value: op.value, ...op.options });
-    return resp;
-  } catch (e: any) {
+    const ok = NextResponse.json(mapped, { status: 200, headers: { ...limitHeaders } });
+    for (const op of cookieOps) ok.cookies.set({ name: op.name, value: op.value, ...op.options });
+    return ok;
+  } catch (error: any) {
+    console.error("Failed to fetch Gmail thread:", {
+      threadId: id,
+      userId: user.id,
+      error: error?.message || String(error),
+    });
+
+    // Check for specific Gmail API errors
+    if (error && typeof error === "object" && "code" in error) {
+      if ((error as any).code === 404) {
+        const resp = NextResponse.json({ error: "Thread not found" }, { status: 404, headers: { ...limitHeaders } });
+        for (const op of cookieOps) resp.cookies.set({ name: op.name, value: op.value, ...op.options });
+        return resp;
+      }
+    }
+
     const resp = NextResponse.json({ error: "Failed to fetch thread" }, { status: 500, headers: { ...limitHeaders } });
     for (const op of cookieOps) resp.cookies.set({ name: op.name, value: op.value, ...op.options });
     return resp;
