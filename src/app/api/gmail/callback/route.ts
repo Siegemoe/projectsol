@@ -25,8 +25,9 @@ function isSafeNext(next: string | null | undefined): next is string {
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const requestedNext = url.searchParams.get("next") || "/app/app/settings?tab=connections";
-  const safeNext = isSafeNext(requestedNext) ? requestedNext : "/app/app/settings?tab=connections";
+  const cookieNext = req.cookies.get("gmail_oauth_next")?.value || null;
+  const requestedNext = url.searchParams.get("next") || cookieNext || "/app/chat?email=1";
+  const safeNext = isSafeNext(requestedNext) ? requestedNext : "/app/chat?email=1";
 
   // Must be enabled
   if (!enabled()) {
@@ -74,10 +75,19 @@ export async function GET(req: NextRequest) {
   const state = url.searchParams.get("state");
   const stateCookie = req.cookies.get("gmail_oauth_state")?.value;
   if (!code || !state || !stateCookie || state !== stateCookie) {
-    const redirect = NextResponse.redirect(new URL(safeNext + "&error=oauth_state", url.origin), 303);
-    // clear state cookie
+    const redirect = NextResponse.redirect(new URL(safeNext + (safeNext.includes("?") ? "&" : "?") + "error=oauth_state", url.origin), 303);
+    // clear state + next cookies
     redirect.cookies.set({
       name: "gmail_oauth_state",
+      value: "",
+      httpOnly: true,
+      path: "/",
+      maxAge: 0,
+      sameSite: "lax",
+      secure: url.protocol === "https:",
+    });
+    redirect.cookies.set({
+      name: "gmail_oauth_next",
       value: "",
       httpOnly: true,
       path: "/",
@@ -109,9 +119,18 @@ export async function GET(req: NextRequest) {
     });
 
     const redirect = NextResponse.redirect(new URL(safeNext, url.origin), 303);
-    // Clear state cookie
+    // Clear state + next cookies
     redirect.cookies.set({
       name: "gmail_oauth_state",
+      value: "",
+      httpOnly: true,
+      path: "/",
+      maxAge: 0,
+      sameSite: "lax",
+      secure: url.protocol === "https:",
+    });
+    redirect.cookies.set({
+      name: "gmail_oauth_next",
       value: "",
       httpOnly: true,
       path: "/",
@@ -123,10 +142,19 @@ export async function GET(req: NextRequest) {
     for (const op of cookieOps) redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
     return redirect;
   } catch (e: any) {
-    const redirect = NextResponse.redirect(new URL(safeNext + "&error=oauth_error", url.origin), 303);
-    // Clear state cookie
+    const redirect = NextResponse.redirect(new URL(safeNext + (safeNext.includes("?") ? "&" : "?") + "error=oauth_error", url.origin), 303);
+    // Clear state + next cookies
     redirect.cookies.set({
       name: "gmail_oauth_state",
+      value: "",
+      httpOnly: true,
+      path: "/",
+      maxAge: 0,
+      sameSite: "lax",
+      secure: url.protocol === "https:",
+    });
+    redirect.cookies.set({
+      name: "gmail_oauth_next",
       value: "",
       httpOnly: true,
       path: "/",

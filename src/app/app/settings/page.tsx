@@ -95,7 +95,7 @@ export default function SettingsPage() {
 function GmailConnectionCard() {
   const search = useSearchParams();
   const tabBack = "connections";
-  const next = `/app/settings?tab=${encodeURIComponent(tabBack)}`;
+  const next = `/app/chat?email=1`;
   const connectHref = `/api/gmail/connect?next=${encodeURIComponent(next)}`;
 
   const [status, setStatus] = useState<GmailStatus | null>(null);

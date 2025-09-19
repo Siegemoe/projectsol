@@ -72,6 +72,14 @@ export async function GET(req: NextRequest) {
     path: "/",
     maxAge: 10 * 60, // 10 minutes
   };
+  // Also persist desired post-auth destination so callback can redirect correctly
+  const nextCookieOpts: CookieOptions = {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: url.protocol === "https:",
+    path: "/",
+    maxAge: 10 * 60,
+  };
 
   const authUrl = oauth.generateAuthUrl({
     access_type: "offline",
@@ -84,7 +92,9 @@ export async function GET(req: NextRequest) {
   const redirect = NextResponse.redirect(authUrl, 303);
   // Apply any Supabase cookie mutations
   for (const op of cookieOps) redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
-  // Set our state cookie
+  // Set our state and next cookies
   redirect.cookies.set({ name: "gmail_oauth_state", value: state, ...stateCookieOpts });
+  // Store the intended return location (e.g., /app/chat?email=1) in a secure cookie
+  redirect.cookies.set({ name: "gmail_oauth_next", value: backTo, ...nextCookieOpts });
   return redirect;
 }
