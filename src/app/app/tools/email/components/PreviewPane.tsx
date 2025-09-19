@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { Thread } from "../types";
 import {
   Reply,
@@ -9,6 +10,7 @@ import {
   Paperclip,
   type LucideIcon,
 } from "lucide-react";
+import { formatEmailHtml } from "@/lib/sanitize";
 
 function IconButton({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
   return (
@@ -50,6 +52,9 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
     minute: "2-digit",
   });
 
+  const body = thread.messages[0]?.body || "";
+  const html = useMemo(() => formatEmailHtml(body), [body]);
+
   return (
     <div className="flex h-full flex-col bg-neutral-950">
       {/* Header */}
@@ -80,9 +85,10 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
 
       {/* Content */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 scroll-hover">
-        <div className="prose prose-invert prose-neutral max-w-none">
-          <p className="text-sm text-neutral-300">{thread.messages[0]?.body}</p>
-        </div>
+        <div
+          className="text-sm leading-6 text-neutral-300 [&_a]:underline [&_a]:text-neutral-400 hover:[&_a]:text-neutral-300"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
 
         {/* Attachments placeholder */}
         <div className="mt-6 rounded-xl border border-neutral-900 bg-neutral-950">
