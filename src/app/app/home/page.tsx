@@ -2,11 +2,11 @@ import type React from "react";
 
 export default function HomePage(): React.ReactElement {
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       {/* 3-column dashboard scaffold (mock) */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Tasks Panel */}
-        <section className="rounded-2xl border border-neutral-900 bg-neutral-950/60 p-4 shadow-[0_0_20px_rgba(255,106,0,0.08)]">
+        <section className="panel p-4">
           <header className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-neutral-200">Tasks</h2>
             <span className="h-1 w-16 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
@@ -19,7 +19,7 @@ export default function HomePage(): React.ReactElement {
         </section>
 
         {/* Updates / Inbox-like feed */}
-        <section className="rounded-2xl border border-neutral-900 bg-neutral-950/60 p-4 shadow-[0_0_20px_rgba(255,106,0,0.08)] md:col-span-1">
+        <section className="panel p-4 md:col-span-1">
           <header className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-neutral-200">Updates</h2>
             <div className="flex items-center gap-1 text-xs text-neutral-500">
@@ -45,7 +45,7 @@ export default function HomePage(): React.ReactElement {
         </section>
 
         {/* Calendar mini */}
-        <section className="rounded-2xl border border-neutral-900 bg-neutral-950/60 p-4 shadow-[0_0_20px_rgba(255,106,0,0.08)]">
+        <section className="panel p-4">
           <header className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-neutral-200">Calendar</h2>
             <div className="text-xs text-neutral-400">{new Date().toLocaleString()}</div>
@@ -59,9 +59,9 @@ export default function HomePage(): React.ReactElement {
       </div>
 
       {/* Quick action input */}
-      <div className="sticky bottom-0 mt-4 bg-neutral-950/60 p-2 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/30">
+      <div className="mt-6">
         <div className="mx-auto max-w-3xl">
-          <div className="relative rounded-2xl bg-neutral-900 p-2 pr-12 ring-1 ring-neutral-800">
+          <div className="relative panel p-2 pr-12">
             <input
               placeholder="Summarize chatbot, email…"
               className="w-full bg-transparent text-sm leading-6 text-neutral-100 outline-none placeholder:text-neutral-500"

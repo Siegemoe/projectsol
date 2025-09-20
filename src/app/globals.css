@@ -9,6 +9,9 @@
   --accent-500: #ff6a00;
   --accent-600: #ff7a1f;
   --accent-700: #ff8a33;
+  --panel-bg: rgba(10, 10, 10, 0.55); /* glassy black */
+  --panel-ring: rgba(38, 38, 38, 0.6); /* neutral-800/60 */
+  --panel-shadow: 0 0 30px rgba(255, 106, 0, 0.08);
 }
 
 html, body {
@@ -79,4 +82,15 @@ html, body {
   border-radius: 9999px;
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent);
+}
+
+/* Panel primitive for borderless/glassy cards */
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: var(--panel-shadow);
+  outline: 1px solid var(--panel-ring);
+  outline-offset: 0; /* simulate subtle ring instead of heavy border */
 }

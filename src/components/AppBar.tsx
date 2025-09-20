@@ -75,7 +75,7 @@ export default function AppBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 md:px-6">
         {/* Brand */}
         <Link href={"/app/home" as Route} className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,7 +91,7 @@ export default function AppBar() {
         {/* Tabs Track */}
         <div
           ref={trackRef}
-          className="relative mx-2 flex-1 overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
+          className="relative mx-4 flex-1 overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
         >
           <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
             {/* Underlay pill (CSS transition fallback) */}
