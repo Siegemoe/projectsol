@@ -4,7 +4,7 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   "connect-src 'self' https://openrouter.ai https://api.openai.com https://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
   "frame-ancestors 'none'",
