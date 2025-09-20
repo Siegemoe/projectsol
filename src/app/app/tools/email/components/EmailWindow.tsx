@@ -9,6 +9,7 @@ import MailSidebar from "./MailSidebar";
 import NewSendersRow from "./NewSendersRow";
 import ThreadList from "./ThreadList";
 import PreviewPane from "./PreviewPane";
+import SolChat from "@/components/SolChat";
 import { useRouter } from "next/navigation";
 import { useDragResize } from "@/hooks/useDragResize";
 import { normalizeSearch } from "@/lib/sanitize";
@@ -63,6 +64,7 @@ export default function EmailWindow({
   const [query, setQuery] = useState("");
   const [sections, setSections] = useState<ThreadSection[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [newSenders, setNewSenders] = useState(() => getNewSenders("gmail"));
 
   // Preview width via reusable drag-resize hook
@@ -70,7 +72,7 @@ export default function EmailWindow({
     initial: DEFAULT_PREVIEW,
     min: MIN_PREVIEW,
     max: MAX_PREVIEW,
-    storageKey: "mail:previewWidth",
+    storageKey: "mail:chatWidth",
     reverse: true,
   });
 
@@ -119,6 +121,7 @@ export default function EmailWindow({
 
   function handleSelect(id: string) {
     setSelectedId(id);
+    setViewerOpen(true);
     // Mark as read on select for visuals
     setSections((prev) =>
       prev.map((s) => ({
@@ -300,16 +303,41 @@ export default function EmailWindow({
               onTouchStart={onResizeStart}
             />
 
-            {/* Preview pane */}
+            {/* Right-side AI chat */}
             <div
               className="min-w-[320px] max-w-[600px] border-l border-neutral-900"
               style={{ width: previewWidth }}
             >
-              <PreviewPane thread={selectedThread} />
+              <SolChat title="Sol" apiPath="/api/sol-chat" emailToolEnabled={false} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Email viewer modal */}
+      {viewerOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 flex items-center justify-center"
+          onClick={() => setViewerOpen(false)}
+        >
+          <div
+            className="relative w-[min(100%,900px)] h-[min(90vh,600px)] rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label="Close"
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              onClick={() => setViewerOpen(false)}
+            >
+              <X className="h-4 w-4 text-neutral-300" />
+            </button>
+            <div className="h-full w-full">
+              <PreviewPane thread={selectedThread} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

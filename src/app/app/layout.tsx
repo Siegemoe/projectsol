@@ -1,5 +1,5 @@
 import type React from "react";
-import AppSidebar from "@/components/AppSidebar";
+import AppShell from "@/components/AppShell";
 import AppViewportLock from "@/components/AppViewportLock";
 import { supabaseServer } from "@/lib/supabase-server";
 
@@ -26,15 +26,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-[calc(100vh-56px)] -mt-10 w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
       <AppViewportLock />
-      {/* Full-height left rail */}
-      <AppSidebar initialUser={initialUser ?? undefined} />
-
-      {/* Main content column */}
+      {/* Main content column (full width; sidebar becomes overlay via AppShell) */}
       <section className="flex-1 flex flex-col overflow-hidden">
-        {/* Page content (no card/borders/heading) */}
-        <div className="flex-1 overflow-hidden px-2 py-2 sm:px-4 sm:py-4">
-          {children}
-        </div>
+        <AppShell initialUser={initialUser ?? undefined}>
+          <div className="flex-1 overflow-hidden px-2 py-2 sm:px-4 sm:py-4">{children}</div>
+        </AppShell>
       </section>
     </div>
   );
