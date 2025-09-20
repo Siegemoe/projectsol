@@ -12,6 +12,8 @@ type Tab = {
 
 const TABS: Tab[] = [
   { label: "Projects", href: "/app/projects" as Route },
+  { label: "Chat", href: "/app/chat" as Route },
+  { label: "Home", href: "/app/home" as Route },
   { label: "Email", href: "/app/email" as Route },
   { label: "Calendar", href: "/app/calendar" as Route },
 ];
@@ -24,14 +26,14 @@ function clamp(n: number, min: number, max: number) {
 export default function AppBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [focusedIndex, setFocusedIndex] = useState<number>(1); // default center on Email
+  const [focusedIndex, setFocusedIndex] = useState<number>(2); // default center on Home
   const trackRef = useRef<HTMLDivElement | null>(null);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [pill, setPill] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
 
   const activeIndex = useMemo(() => {
     const idx = TABS.findIndex((t) => pathname?.startsWith(t.href));
-    return idx >= 0 ? idx : 1; // default Email (center)
+    return idx >= 0 ? idx : 2; // default Home (center)
   }, [pathname]);
 
   // Keep focusedIndex in sync with route changes
