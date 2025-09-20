@@ -13,34 +13,24 @@
  * If EMAIL_ALLOWLIST is empty or not set, allowlist check passes (returns true) by default.
  */
 
-function parseList(raw: string | undefined): string[] {
-  if (!raw) return [];
-  return raw
+const ALLOWLIST: Set<string> = new Set(
+  (process.env.EMAIL_ALLOWLIST || "")
     .split(",")
     .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
+    .filter(Boolean)
+);
 
 export function isAllowlisted(email: string | null | undefined): boolean {
-  const items = parseList(process.env.EMAIL_ALLOWLIST);
-  // When not configured, do not block
-  if (items.length === 0) return true;
-
+  if (ALLOWLIST.size === 0) return true;
   if (!email) return false;
-  const e = String(email).toLowerCase();
 
-  for (const token of items) {
-    // Exact email match (contains '@' and not a leading domain token)
-    if (token.includes("@") && !token.startsWith("@")) {
-      if (e === token) return true;
-      continue;
-    }
+  const lowerEmail = email.toLowerCase();
+  if (ALLOWLIST.has(lowerEmail)) return true;
 
-    // Domain token (either "@domain" or "domain")
-    const domain = token.startsWith("@") ? token.slice(1) : token;
-    if (domain && e.endsWith("@" + domain)) {
-      return true;
-    }
+  const domain = lowerEmail.split("@")[1];
+  if (domain && (ALLOWLIST.has(`@${domain}`) || ALLOWLIST.has(domain))) {
+    return true;
   }
+
   return false;
 }

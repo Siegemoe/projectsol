@@ -1,5 +1,6 @@
 import { google, gmail_v1 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
+import type { Credentials } from "google-auth-library";
 import crypto from "crypto";
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
@@ -173,7 +174,7 @@ export async function getUserOAuthClient(supabase: SupabaseClient, userId: strin
     scope: row.scope ?? undefined,
   });
   // optionally listen for token refreshes to persist new access/expiry
-  oauth.on("tokens", async (tokens) => {
+  oauth.on("tokens", async (tokens: Credentials) => {
     try {
       await upsertTokenRow({
         supabase,

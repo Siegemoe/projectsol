@@ -56,6 +56,5 @@ export function checkRateLimit(
  */
 export function envEnabled(value: string | undefined, defaultOn = true): boolean {
   if (value == null) return defaultOn;
-  const v = value.toLowerCase().trim();
-  return v === "1" || v === "true" || v === "yes" || v === "on";
+  return /^(1|true|yes|on)$/i.test(value.trim());
 }

@@ -29,6 +29,20 @@ pnpm-debug.log*
 .env.test.local
 .env.production.local
 
+# testing
+/src/lib/__tests__
+
+# documentation
+/docs
+
+# vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
 # Vercel
 .vercel
 

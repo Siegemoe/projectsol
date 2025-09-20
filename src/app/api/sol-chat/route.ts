@@ -33,40 +33,32 @@ function validateTemperature(value: any, fallback = 0.3) {
 function validateMessagesPayload(payload: any):
   | { ok: true; messages: ChatMessage[]; totalChars: number }
   | { ok: false; status: number; error: string } {
-  if (!Array.isArray(payload)) {
-    return { ok: false, status: 400, error: "messages must be an array" };
-  }
-  if (payload.length === 0) {
-    return { ok: false, status: 400, error: "messages cannot be empty" };
+  if (!Array.isArray(payload) || payload.length === 0) {
+    return { ok: false, status: 400, error: "messages must be a non-empty array" };
   }
   if (payload.length > MAX_MESSAGES) {
     return { ok: false, status: 413, error: `too many messages (>${MAX_MESSAGES})` };
   }
 
-  let total = 0;
+  let totalChars = 0;
   const result: ChatMessage[] = [];
+
   for (const m of payload) {
-    if (!m || (m.role !== "user" && m.role !== "assistant")) {
-      return { ok: false, status: 400, error: "invalid role in messages" };
+    if (!m || (m.role !== "user" && m.role !== "assistant") || typeof m.content !== "string" || m.content.length === 0) {
+      return { ok: false, status: 400, error: "invalid message format" };
     }
-    if (typeof m.content !== "string") {
-      return { ok: false, status: 400, error: "message content must be a string" };
-    }
-    const content = m.content;
-    if (content.length === 0) {
-      return { ok: false, status: 400, error: "message content cannot be empty" };
-    }
-    if (content.length > MAX_CONTENT_CHARS) {
+    if (m.content.length > MAX_CONTENT_CHARS) {
       return { ok: false, status: 413, error: `message too large (>${MAX_CONTENT_CHARS} chars)` };
     }
-    total += content.length;
-    if (total > MAX_TOTAL_CHARS) {
-      return { ok: false, status: 413, error: `request too large (>${MAX_TOTAL_CHARS} chars)` };
-    }
-    result.push({ role: m.role, content });
+    totalChars += m.content.length;
+    result.push({ role: m.role, content: m.content });
   }
 
-  return { ok: true, messages: result, totalChars: total };
+  if (totalChars > MAX_TOTAL_CHARS) {
+    return { ok: false, status: 413, error: `request too large (>${MAX_TOTAL_CHARS} chars)` };
+  }
+
+  return { ok: true, messages: result, totalChars };
 }
 
 async function getSupabaseUser() {
@@ -97,16 +89,20 @@ function getClientIp(req: Request): string {
   return ip || "anonymous";
 }
 
+function jsonError(error: string, status: number, headers?: Record<string, string>) {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+}
+
 export async function POST(req: Request) {
   // Parse and validate JSON
   let body: any;
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonError("Invalid JSON", 400);
   }
 
   const { messages, model, temperature, system } = body ?? {};
@@ -117,16 +113,10 @@ export async function POST(req: Request) {
   if (REQUIRE_AUTH) {
     const user = await getSupabaseUser();
     if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonError("Unauthorized", 401);
     }
     if (!isAllowlisted(user.email)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonError("Forbidden", 403);
     }
     userId = user.id;
   }
@@ -146,41 +136,28 @@ export async function POST(req: Request) {
     : {};
 
   if (RATE_LIMIT_ON && !allowed) {
-    return new Response(JSON.stringify({ error: "Too Many Requests" }), {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": "60",
-        ...commonLimitHeaders,
-      },
+    return jsonError("Too Many Requests", 429, {
+      "Retry-After": "60",
+      ...commonLimitHeaders,
     });
   }
 
   // Check API key
   if (!process.env.OPENROUTER_API_KEY) {
-    return new Response(JSON.stringify({ error: "Missing OPENROUTER_API_KEY" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json", ...commonLimitHeaders },
-    });
+    return jsonError("Missing OPENROUTER_API_KEY", 500, commonLimitHeaders);
   }
 
   // Validate model
   const allow = parseAllowedModels();
   const selectedModel = typeof model === "string" && model.trim().length > 0 ? model.trim() : Array.from(allow)[0];
   if (!allow.has(selectedModel)) {
-    return new Response(JSON.stringify({ error: "Model not allowed" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", ...commonLimitHeaders },
-    });
+    return jsonError("Model not allowed", 400, commonLimitHeaders);
   }
 
   // Validate messages
   const msgCheck = validateMessagesPayload(messages);
   if (!msgCheck.ok) {
-    return new Response(JSON.stringify({ error: msgCheck.error }), {
-      status: msgCheck.status,
-      headers: { "Content-Type": "application/json", ...commonLimitHeaders },
-    });
+    return jsonError(msgCheck.error, msgCheck.status, commonLimitHeaders);
   }
 
   const safeTemperature = validateTemperature(temperature, 0.3);
@@ -212,17 +189,15 @@ export async function POST(req: Request) {
     if (!r.ok || !r.body) {
       // Do not leak upstream error bodies
       const requestId = r.headers.get("x-request-id") || r.headers.get("x-openrouter-id") || undefined;
-      return new Response(
-        JSON.stringify({
-          error: "Upstream error",
-          status: r.status,
-          ...(requestId ? { requestId } : {}),
-        }),
-        {
-          status: r.status,
-          headers: { "Content-Type": "application/json", ...commonLimitHeaders },
-        }
-      );
+      const errorBody = {
+        error: "Upstream error",
+        status: r.status,
+        ...(requestId ? { requestId } : {}),
+      };
+      return new Response(JSON.stringify(errorBody), {
+        status: r.status,
+        headers: { "Content-Type": "application/json", ...commonLimitHeaders },
+      });
     }
 
     // Pass-through streaming response (SSE)
@@ -235,9 +210,6 @@ export async function POST(req: Request) {
       },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err?.message || "Request failed" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", ...commonLimitHeaders },
-    });
+    return jsonError(err?.message || "Request failed", 400, commonLimitHeaders);
   }
 }
