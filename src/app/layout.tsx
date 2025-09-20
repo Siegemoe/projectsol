@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="font-semibold tracking-tight">ProjectSol</div>
             </Link>
             <nav className="flex items-center gap-3">
-              <Link href={"/" as Route} className="text-sm hover:text-neutral-300">Home</Link>
+              {/* Removed Home and Chat from the top header per request */}
               {!user && (
                 <Suspense
                   fallback={
@@ -51,8 +51,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <SignInLink className="text-sm hover:text-neutral-300">Sign in</SignInLink>
                 </Suspense>
               )}
-              {/* Removed "App" link per request */}
-              <Link href={"/app/chat" as Route} className="text-sm hover:text-neutral-300">Chat</Link>
               <span className="rounded-md border border-neutral-800 px-2 py-1 text-xs text-neutral-300">
                 {process.env.NEXT_PUBLIC_APP_ENV ?? "development"}
               </span>

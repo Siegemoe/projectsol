@@ -89,14 +89,17 @@ export default function AppBar() {
         >
           <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
             {/* Underlay pill (CSS transition fallback) */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[rgba(255,106,0,0.12)] ring-1 ring-[rgba(255,106,0,0.35)] shadow-[0_0_20px_rgba(255,106,0,0.25)]"
-              style={{
-                left: pill.left,
-                width: pill.width,
-                transition: "left 300ms cubic-bezier(0.22,1,0.36,1), width 300ms cubic-bezier(0.22,1,0.36,1)",
-              }}
-            />
+            {pill.width > 0 && (
+              <div
+                className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[rgba(255,106,0,0.12)] ring-1 ring-[rgba(255,106,0,0.35)] shadow-[0_0_20px_rgba(255,106,0,0.25)]"
+                style={{
+                  left: pill.left,
+                  width: pill.width,
+                  transition:
+                    "left 300ms cubic-bezier(0.22,1,0.36,1), width 300ms cubic-bezier(0.22,1,0.36,1)",
+                }}
+              />
+            )}
 
             {TABS.map((tab, i) => {
               const active = i === activeIndex;
@@ -132,8 +135,8 @@ export default function AppBar() {
           </div>
         </div>
 
-        {/* User Menu (simple) */}
-        <UserMenu />
+        {/* User Menu moved to top header */}
+        <div />
       </div>
     </header>
   );
