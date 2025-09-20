@@ -1,0 +1,199 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { Route } from "next";
+
+type Tab = {
+  label: string;
+  href: Route;
+};
+
+const TABS: Tab[] = [
+  { label: "Projects", href: "/app/projects" as Route },
+  { label: "Chat", href: "/app/chat" as Route },
+  { label: "Home", href: "/app/home" as Route },
+  { label: "Email", href: "/app/email" as Route },
+  { label: "Calendar", href: "/app/calendar" as Route },
+];
+
+// Utility to clamp numbers
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+export default function AppBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [focusedIndex, setFocusedIndex] = useState<number>(2); // default center on Home
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [pill, setPill] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+
+  const activeIndex = useMemo(() => {
+    const idx = TABS.findIndex((t) => pathname?.startsWith(t.href));
+    return idx >= 0 ? idx : 2; // default Home
+  }, [pathname]);
+
+  // Keep focusedIndex in sync with route changes
+  useEffect(() => {
+    setFocusedIndex(activeIndex);
+  }, [activeIndex]);
+
+  // Center active button in the track and update pill position
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    const btn = buttonRefs.current[activeIndex];
+    if (!track || !btn) return;
+    const trackRect = track.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    const currentScroll = track.scrollLeft;
+    const nextScroll =
+      currentScroll + (btnRect.left + btnRect.width / 2 - (trackRect.left + trackRect.width / 2));
+    track.scrollTo({ left: nextScroll, behavior: "smooth" });
+    // Update pill
+    setPill({ left: btn.offsetLeft - 4, width: btn.offsetWidth + 8 });
+  }, [activeIndex]);
+
+  // Keyboard navigation (Left/Right to move selector; Enter to activate)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!["ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) return;
+      if (e.key === "ArrowLeft") {
+        setFocusedIndex((i) => clamp(i - 1, 0, TABS.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setFocusedIndex((i) => clamp(i + 1, 0, TABS.length - 1));
+      } else if (e.key === "Enter") {
+        const tab = TABS[focusedIndex];
+        if (tab) router.push(tab.href);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [focusedIndex, router]);
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2">
+        {/* Brand */}
+        <Link href={"/app/home" as Route} className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-sol.svg" alt="ProjectSol" className="h-8 w-8 rounded-full ring-1 ring-neutral-800" />
+          <div className="font-semibold tracking-tight">
+            <span className="text-neutral-100">Project</span>
+            <span className="ml-1 bg-gradient-to-r from-[var(--accent)] via-[#ff8a33] to-[#ff6a00] bg-clip-text text-transparent">
+              Sol
+            </span>
+          </div>
+        </Link>
+
+        {/* Tabs Track */}
+        <div
+          ref={trackRef}
+          className="relative mx-2 flex-1 overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
+        >
+          <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
+            {/* Underlay pill (CSS transition fallback) */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[rgba(255,106,0,0.12)] ring-1 ring-[rgba(255,106,0,0.35)] shadow-[0_0_20px_rgba(255,106,0,0.25)]"
+              style={{
+                left: pill.left,
+                width: pill.width,
+                transition: "left 300ms cubic-bezier(0.22,1,0.36,1), width 300ms cubic-bezier(0.22,1,0.36,1)",
+              }}
+            />
+
+            {TABS.map((tab, i) => {
+              const active = i === activeIndex;
+              // scale/tilt relative to active to create curved feel
+              const distance = Math.abs(i - activeIndex);
+              const scale = active ? 1.08 : distance === 1 ? 0.98 : 0.96;
+              const rotate = active ? 0 : i < activeIndex ? -0.5 : 0.5;
+              return (
+                <button
+                  key={tab.href}
+                  ref={(el: HTMLButtonElement | null) => { buttonRefs.current[i] = el; }}
+                  className={[
+                    "relative z-10 rounded-full px-4 py-1.5 text-sm transition-colors",
+                    active ? "text-neutral-50" : "text-neutral-400 hover:text-neutral-200",
+                  ].join(" ")}
+                  style={{
+                    WebkitTapHighlightColor: "transparent",
+                    transform: `scale(${scale}) rotate(${rotate}deg)`,
+                    transition: "transform 300ms cubic-bezier(0.22,1,0.36,1)",
+                  }}
+                  onClick={() => router.push(tab.href)}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="relative">
+                    {tab.label}
+                    {active && (
+                      <span className="absolute -bottom-2 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)]" />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* User Menu (simple) */}
+        <UserMenu />
+      </div>
+    </header>
+  );
+}
+
+function UserMenu() {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  async function signOut() {
+    try {
+      await fetch("/signout", { method: "POST" });
+    } catch {}
+    router.push("/signin" as Route);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className="inline-flex h-9 items-center gap-2 rounded-full border border-neutral-900 bg-neutral-900 px-3 text-sm text-neutral-200 hover:bg-neutral-800"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span className="inline-block h-5 w-5 rounded-full bg-neutral-800 ring-1 ring-neutral-700" />
+        <span className="hidden sm:inline">Account</span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-2 min-w-[12rem] rounded-xl border border-neutral-900 bg-neutral-950 p-1 shadow-xl"
+        >
+          <Link
+            href={"/app/settings" as Route}
+            className="block rounded-lg px-3 py-2 text-sm text-neutral-200 hover:bg-neutral-900"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Settings
+          </Link>
+          <button
+            type="button"
+            onClick={signOut}
+            className="block w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-900"
+            role="menuitem"
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Hide native scrollbars for the tabs track on WebKit
+// (Tailwind class 'no-scrollbar' is used on the track; add styles globally if desired)

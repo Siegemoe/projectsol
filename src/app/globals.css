@@ -5,6 +5,10 @@
 /* Global styles */
 :root {
   color-scheme: dark;
+  --accent: #ff6a00;
+  --accent-500: #ff6a00;
+  --accent-600: #ff7a1f;
+  --accent-700: #ff8a33;
 }
 
 html, body {
@@ -49,4 +53,30 @@ html, body {
 
 .scroll-hover::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Utility: hide scrollbars (while allowing scroll) */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* Neon helpers */
+.neon-underline {
+  position: relative;
+}
+.neon-underline::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
 }

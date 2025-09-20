@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { isAllowlisted } from "@/lib/allowlist";
-import SolChat from "@/components/SolChat";
+import dynamic from "next/dynamic";
+
+const Chat2Pane = dynamic(() => import("@/components/chat/Chat2Pane"), { ssr: false });
 
 export default async function AppChatPage() {
   const supabase = await supabaseServer();
@@ -18,7 +20,7 @@ export default async function AppChatPage() {
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <SolChat title="Sol" apiPath="/api/sol-chat" />
+      <Chat2Pane />
     </div>
   );
 }
