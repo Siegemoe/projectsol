@@ -12,8 +12,6 @@ type Tab = {
 
 const TABS: Tab[] = [
   { label: "Projects", href: "/app/projects" as Route },
-  { label: "Chat", href: "/app/chat" as Route },
-  { label: "Home", href: "/app/home" as Route },
   { label: "Email", href: "/app/email" as Route },
   { label: "Calendar", href: "/app/calendar" as Route },
 ];
@@ -26,14 +24,14 @@ function clamp(n: number, min: number, max: number) {
 export default function AppBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [focusedIndex, setFocusedIndex] = useState<number>(2); // default center on Home
+  const [focusedIndex, setFocusedIndex] = useState<number>(1); // default center on Email
   const trackRef = useRef<HTMLDivElement | null>(null);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [pill, setPill] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
 
   const activeIndex = useMemo(() => {
     const idx = TABS.findIndex((t) => pathname?.startsWith(t.href));
-    return idx >= 0 ? idx : 2; // default Home
+    return idx >= 0 ? idx : 1; // default Email (center)
   }, [pathname]);
 
   // Keep focusedIndex in sync with route changes
@@ -75,23 +73,17 @@ export default function AppBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 md:px-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-[auto,1fr,auto] items-center gap-4 px-4 py-2 md:px-6">
         {/* Brand */}
         <Link href={"/app/home" as Route} className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-sol.svg" alt="ProjectSol" className="h-8 w-8 rounded-full ring-1 ring-neutral-800" />
-          <div className="font-semibold tracking-tight">
-            <span className="text-neutral-100">Project</span>
-            <span className="ml-1 bg-gradient-to-r from-[var(--accent)] via-[#ff8a33] to-[#ff6a00] bg-clip-text text-transparent">
-              Sol
-            </span>
-          </div>
         </Link>
 
         {/* Tabs Track */}
         <div
           ref={trackRef}
-          className="relative mx-4 flex-1 overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
+          className="relative mx-4 w-full max-w-2xl justify-self-center overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
         >
           <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
             {/* Underlay pill (CSS transition fallback) */}
