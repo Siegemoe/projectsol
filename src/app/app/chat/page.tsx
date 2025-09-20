@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { isAllowlisted } from "@/lib/allowlist";
-import dynamic from "next/dynamic";
-
-const Chat2Pane = dynamic(() => import("@/components/chat/Chat2Pane"), { ssr: false });
+import Chat2Pane from "@/components/chat/Chat2Pane";
 
 export default async function AppChatPage() {
   const supabase = await supabaseServer();
