@@ -79,7 +79,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   }
 
   return (
-    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] z-30">
+    <aside className="panel rounded-none h-full min-w-[22rem] w-[22rem] shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] z-30 text-[13px]">
       <div className="flex items-center justify-between px-3 py-2">
         <div className="text-sm font-medium text-text">Chat History</div>
         <button

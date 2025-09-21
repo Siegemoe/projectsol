@@ -16,11 +16,14 @@ type Props = {
   page: number;
   onPageChange: (next: number) => void;
   onJumpTo: (absoluteIndex: number) => void;
+  topOffset?: number; // px from top when fixed
+  rightOffset?: number; // px from right when fixed
+  bottomOffset?: number; // px from bottom to clear composer
 };
 
 const PAGE_SIZE = 14;
 
-export default function TimelineRail({ items, page, onPageChange, onJumpTo }: Props) {
+export default function TimelineRail({ items, page, onPageChange, onJumpTo, topOffset = 72, rightOffset = 16, bottomOffset = 96 }: Props) {
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const clampedPage = Math.min(Math.max(0, page), totalPages - 1);
 
@@ -35,10 +38,11 @@ export default function TimelineRail({ items, page, onPageChange, onJumpTo }: Pr
 
   return (
     <div
-      className="hidden md:flex absolute inset-y-0 right-0 w-10 items-center justify-center pointer-events-none z-10"
+      className="hidden md:flex fixed w-10 items-center justify-center pointer-events-none z-30"
+      style={{ top: topOffset, bottom: bottomOffset, right: rightOffset }}
       aria-hidden={items.length === 0}
     >
-      <div className="pointer-events-auto flex h-[85%] w-8 flex-col items-center justify-between rounded-full bg-[color:var(--bg-elev-2)] shadow-hairline py-2">
+      <div className="pointer-events-auto flex h-full w-8 flex-col items-center justify-between rounded-full bg-[color:var(--bg-elev-2)] shadow-hairline py-2">
         <button
           type="button"
           onClick={() => go(-1)}

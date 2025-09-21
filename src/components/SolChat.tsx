@@ -65,6 +65,24 @@ export default function SolChat({
   const { startStream } = useStreamedChat(apiPath);
   const messageRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [timelinePage, setTimelinePage] = useState(0);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [railOffset, setRailOffset] = useState<{ top: number; right: number }>({ top: 72, right: 16 });
+
+  useEffect(() => {
+    function measure() {
+      const el = rootRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setRailOffset((prev) => ({ top: Math.max(56, Math.round(rect.top) + 8), right: 16 }));
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure as any, { passive: true } as any);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure as any);
+    };
+  }, []);
 
   // Keep messages scrolled to bottom when they change
   useEffect(() => {
@@ -274,10 +292,10 @@ export default function SolChat({
   };
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col">
+    <div ref={rootRef} className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
       {/* Scrollable messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 py-4 scroll-hover">
-        <div className="mx-auto flex max-w-3xl flex-col gap-3">
+        <div className="mx-auto flex max-w-4xl flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";
             return (
@@ -290,7 +308,7 @@ export default function SolChat({
               >
                 <div
                   className={[
-                    "max-w-[85%] whitespace-pre-wrap text-sm",
+                    "max-w-[90%] whitespace-pre-wrap text-[13px] leading-5",
                     isUser
                       ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text"
                       : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text shadow-hairline",
@@ -314,7 +332,7 @@ export default function SolChat({
 
       {/* Composer: sticky at bottom, Gemini-style bubble */}
       <div className="sticky bottom-0 mt-auto bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
-        <form onSubmit={sendMessage} className="mx-auto max-w-3xl">
+        <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
           <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
             <textarea
               ref={inputRef}
@@ -323,7 +341,7 @@ export default function SolChat({
               onKeyDown={onKeyDown}
               rows={1}
               placeholder={`Ask ${title}`}
-              className="w-full resize-none bg-transparent text-sm leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
+              className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
             />
             <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
               <button
@@ -367,6 +385,8 @@ export default function SolChat({
         page={timelinePage}
         onPageChange={setTimelinePage}
         onJumpTo={jumpTo}
+        topOffset={railOffset.top}
+        rightOffset={railOffset.right}
       />
 
       {/* Email overlay panel (slides in from the left) */}
