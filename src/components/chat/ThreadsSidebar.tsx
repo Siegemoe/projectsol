@@ -54,7 +54,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   }
 
   return (
-    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col">
+    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] ring-1 ring-[color:var(--accent)]/30 z-10">
       <div className="flex items-center justify-between px-3 py-2">
         <div className="text-sm font-medium text-neutral-300">Threads</div>
         <button

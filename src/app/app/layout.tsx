@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* App shell with central App Bar */}
       <section className="flex-1 flex flex-col overflow-hidden w-full">
         <AppBar />
-        <div className="flex-1 overflow-hidden px-2 py-2 sm:px-4 sm:py-4">
+        <div className="flex-1 overflow-x-visible overflow-y-hidden px-2 py-2 sm:px-4 sm:py-4">
           <PageTransition>{children}</PageTransition>
         </div>
       </section>
