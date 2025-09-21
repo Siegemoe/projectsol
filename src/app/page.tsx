@@ -1,10 +1,16 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { supabaseServer } from "@/lib/supabase-server";
 
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const demoHref = (user ? "/app/home" : `/signin?next=${encodeURIComponent("/app/home")}`) as Route;
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-neutral-900 bg-neutral-950">
+    <div className="relative overflow-hidden rounded-2xl panel">
       {/* background art */}
       <div className="pointer-events-none absolute inset-0">
         <img src="/hero-grid.svg?v=1" alt="" className="h-full w-full object-cover opacity-90" />
@@ -22,13 +28,13 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href={"/demo" as Route}
-              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-200"
+              href={demoHref}
+              className="button"
             >
               Try the demo
             </Link>
             <a
-              className="rounded-xl border border-neutral-700 px-4 py-2 text-sm hover:border-neutral-600"
+              className="rounded-xl bg-[color:var(--bg-elev-2)] px-4 py-2 text-sm text-text shadow-hairline"
               href="https://github.com/Siegemoe/projectsol"
               target="_blank"
               rel="noreferrer"

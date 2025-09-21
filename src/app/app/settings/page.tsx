@@ -30,16 +30,16 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
       {/* Tabs */}
-      <div className="border-b border-neutral-900">
+      <div className="">
         <nav className="-mb-px flex gap-4">
           <button
             type="button"
             onClick={() => setTab("general")}
             className={classNames(
-              "whitespace-nowrap border-b-2 px-3 pb-2 text-sm",
+              "whitespace-nowrap px-3 pb-2 text-sm transition-colors",
               tab === "general"
-                ? "border-neutral-300 text-neutral-200"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
+                ? "text-text"
+                : "text-text-dim hover:text-text"
             )}
           >
             General
@@ -48,10 +48,10 @@ export default function SettingsPage() {
             type="button"
             onClick={() => setTab("connections")}
             className={classNames(
-              "whitespace-nowrap border-b-2 px-3 pb-2 text-sm",
+              "whitespace-nowrap px-3 pb-2 text-sm transition-colors",
               tab === "connections"
-                ? "border-neutral-300 text-neutral-200"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
+                ? "text-text"
+                : "text-text-dim hover:text-text"
             )}
           >
             Connections
@@ -69,15 +69,15 @@ export default function SettingsPage() {
 
       {tab === "connections" ? (
         <div className="space-y-4">
-          <div className="rounded-xl border border-neutral-900 bg-neutral-950">
-            <div className="flex items-center gap-2 border-b border-neutral-900 px-4 py-3">
+          <div className="panel">
+            <div className="flex items-center gap-2 px-4 py-3">
               <PlugZap className="h-4 w-4 text-neutral-300" />
               <h2 className="text-sm font-medium text-neutral-200">Connections</h2>
             </div>
 
             <div className="p-4 space-y-4">
               <GmailConnectionCard />
-              <div className="rounded-lg border border-neutral-900 bg-neutral-950/40 p-3 text-xs text-neutral-400 flex items-start gap-2">
+              <div className="rounded-lg bg-[color:var(--bg-elev-2)] p-3 text-xs text-neutral-400 flex items-start gap-2 shadow-hairline">
                 <Shield className="h-4 w-4 mt-0.5 text-neutral-400" />
                 <div>
                   Tokens are stored server-side and refresh tokens are encrypted at rest.
@@ -134,8 +134,8 @@ function GmailConnectionCard() {
   const email = (status && "email" in status ? status.email : null) || null;
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-neutral-900 bg-neutral-950 p-4">
-      <div className="mt-1 rounded-md border border-neutral-900 bg-neutral-900/60 p-2">
+    <div className="flex items-start gap-3 rounded-lg bg-[color:var(--bg-elev-2)] p-4 shadow-hairline">
+      <div className="mt-1 rounded-md bg-[color:var(--bg-elev-2)] p-2 shadow-hairline">
         <Mail className="h-5 w-5 text-neutral-300" />
       </div>
       <div className="flex-1">
@@ -163,7 +163,7 @@ function GmailConnectionCard() {
           {!connected ? (
             <a
               href={connectHref}
-              className="inline-flex items-center gap-2 rounded-md border border-neutral-900 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-200 hover:bg-neutral-800"
+              className="inline-flex items-center gap-2 rounded-md bg-[color:var(--bg-elev-2)] px-3 py-1.5 text-sm text-text shadow-hairline"
             >
               <PlugZap className="h-4 w-4 text-neutral-300" />
               Connect Gmail

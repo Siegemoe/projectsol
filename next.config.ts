@@ -15,9 +15,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
   async headers() {
     return [
       {

@@ -44,7 +44,7 @@ export default function AppShell({
         type="button"
         aria-label="Open menu"
         onClick={() => setOpen(true)}
-        className="absolute left-2 top-2 z-30 inline-flex h-9 w-9 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text hover:shadow-glow shadow-hairline"
+        className="absolute left-2 top-2 z-30 inline-flex h-9 w-9 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
       >
         {/* simple hamburger */}
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -80,7 +80,7 @@ export default function AppShell({
           type="button"
           aria-label="Close menu"
           onClick={() => setOpen(false)}
-          className="absolute -right-10 top-3 hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text hover:shadow-glow shadow-hairline"
+          className="absolute -right-10 top-3 hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

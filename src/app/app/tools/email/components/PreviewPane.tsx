@@ -18,7 +18,7 @@ function IconButton({ label, icon: Icon }: { label: string; icon: LucideIcon }) 
       type="button"
       title={label}
       aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
     >
       <Icon className="h-4 w-4 text-neutral-300" />
     </button>
@@ -87,7 +87,7 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
   if (!thread || !message) {
     return (
       <div className="flex h-full flex-col">
-        <div className="border-b border-neutral-900 px-4 py-3">
+        <div className="px-4 py-3">
           <div className="text-sm font-medium text-neutral-300">No conversation selected</div>
           <div className="text-xs text-neutral-500">Choose a message to read</div>
         </div>
@@ -112,9 +112,9 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
 
 
   return (
-    <div className="flex h-full flex-col bg-neutral-950">
+    <div className="flex h-full flex-col bg-bg-1">
       {/* Header */}
-      <div className="space-y-2 border-b border-neutral-900 px-4 py-3">
+      <div className="space-y-2 px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="truncate text-sm font-medium text-neutral-200">{thread.subject}</div>
@@ -128,7 +128,7 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-neutral-200">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-xs font-medium text-text shadow-hairline">
             {thread.sender.initials ?? "S"}
           </div>
           <div className="min-w-0">
@@ -139,13 +139,13 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
       </div>
 
       {/* Content */}
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden panel">
         {bodyHtml ? (
           <SafeHtml html={bodyHtml} message={message} />
         ) : (
           <div className="overflow-y-auto px-4 py-4 scroll-hover">
             <div
-              className="text-sm leading-6 text-neutral-300 [&_a]:underline [&_a]:text-neutral-400 hover:[&_a]:text-neutral-300"
+              className="text-sm leading-6 text-text [&_a]:underline [&_a]:text-text-dim hover:[&_a]:text-text"
               dangerouslySetInnerHTML={{ __html: formattedText }}
             />
           </div>
@@ -153,12 +153,12 @@ export default function PreviewPane({ thread }: { thread: Thread | null }) {
       </div>
 
       {/* Attachments placeholder */}
-      <div className="border-t border-neutral-900 bg-neutral-950">
-        <div className="flex items-center gap-2 border-b border-neutral-900 px-3 py-2 text-sm text-neutral-300">
+      <div className="mt-2 panel">
+        <div className="flex items-center gap-2 px-3 py-2 text-sm text-text">
           <Paperclip className="h-4 w-4 text-neutral-400" />
           Attachments
         </div>
-        <div className="px-3 py-6 text-center text-xs text-neutral-500">No attachments</div>
+        <div className="px-3 py-6 text-center text-xs text-text-dim">No attachments</div>
       </div>
     </div>
   );

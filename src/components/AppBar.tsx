@@ -41,18 +41,11 @@ export default function AppBar() {
     setFocusedIndex(activeIndex);
   }, [activeIndex]);
 
-  // Center active button in the track and update pill position
+  // Update pill position based on button offset (no scrolling/tilt)
   useLayoutEffect(() => {
     const track = trackRef.current;
     const btn = buttonRefs.current[activeIndex];
     if (!track || !btn) return;
-    const trackRect = track.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    const currentScroll = track.scrollLeft;
-    const nextScroll =
-      currentScroll + (btnRect.left + btnRect.width / 2 - (trackRect.left + trackRect.width / 2));
-    track.scrollTo({ left: nextScroll, behavior: "smooth" });
-    // Update pill
     setPill({ left: btn.offsetLeft - 4, width: btn.offsetWidth + 8 });
   }, [activeIndex]);
 
@@ -85,13 +78,13 @@ export default function AppBar() {
         {/* Tabs Track */}
         <div
           ref={trackRef}
-          className="relative mx-4 w-full max-w-2xl justify-self-center overflow-x-auto overflow-y-hidden rounded-full panel no-scrollbar"
+          className="relative mx-4 w-full max-w-2xl justify-self-center overflow-hidden rounded-full panel"
         >
-          <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
+          <div className="relative mx-auto flex items-center justify-center gap-2 px-2 py-1">
             {/* Underlay pill (CSS transition fallback) */}
             {pill.width > 0 && (
               <div
-                className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] shadow-[0_0_20px_color-mix(in_srgb,var(--accent)_35%,transparent)]"
+                className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[color-mix(in_srgb,var(--accent)_18%,transparent)]"
                 style={{
                   left: pill.left,
                   width: pill.width,
@@ -103,10 +96,6 @@ export default function AppBar() {
 
             {TABS.map((tab, i) => {
               const active = i === activeIndex;
-              // scale/tilt relative to active to create curved feel
-              const distance = Math.abs(i - activeIndex);
-              const scale = active ? 1.08 : distance === 1 ? 0.98 : 0.96;
-              const rotate = active ? 0 : i < activeIndex ? -0.5 : 0.5;
               return (
                 <button
                   key={tab.href}
@@ -117,8 +106,6 @@ export default function AppBar() {
                   ].join(" ")}
                   style={{
                     WebkitTapHighlightColor: "transparent",
-                    transform: `scale(${scale}) rotate(${rotate}deg)`,
-                    transition: "transform 300ms cubic-bezier(0.22,1,0.36,1)",
                   }}
                   onClick={() => router.push(tab.href)}
                   aria-current={active ? "page" : undefined}
@@ -126,7 +113,7 @@ export default function AppBar() {
                   <span className="relative">
                     {tab.label}
                     {active && (
-                      <span className="absolute -bottom-2 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)]" />
+                      <span className="absolute -bottom-2 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-[var(--accent)]" />
                     )}
                   </span>
                 </button>

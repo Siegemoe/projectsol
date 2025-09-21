@@ -116,7 +116,7 @@ function ThreadRow({
         }
       }}      className={[
         "group flex w-full items-start gap-3 px-3 py-2 text-left transition rounded-lg",
-        selected ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-text shadow-glow" : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text hover:shadow-glow shadow-hairline",
+        selected ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-text" : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text shadow-hairline",
       ].join(" ")}
     >
       {/* caret / collapse indicator (decorative) */}
@@ -165,7 +165,7 @@ function ThreadRow({
               e.stopPropagation();
               onToggleUnread();
             }}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
           >
             {thread.unread ? (
               <CircleDot className="h-3.5 w-3.5 text-blue-400" />
@@ -180,7 +180,7 @@ function ThreadRow({
               e.stopPropagation();
               onTogglePinned();
             }}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
           >
             {thread.pinned ? (
               <Star className="h-3.5 w-3.5 text-yellow-400" />

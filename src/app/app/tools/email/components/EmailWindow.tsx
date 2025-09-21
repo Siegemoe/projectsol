@@ -218,7 +218,7 @@ export default function EmailWindow({
               title="Refresh"
               aria-label="Refresh"
               onClick={() => setSections(getSections(providerId, folder))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
             >
               <RefreshCcw className="h-4 w-4 text-neutral-300" />
             </button>
@@ -226,7 +226,7 @@ export default function EmailWindow({
               title="Filter"
               aria-label="Filter"
               onClick={() => {}}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
             >
               <SlidersHorizontal className="h-4 w-4 text-neutral-300" />
             </button>
@@ -234,7 +234,7 @@ export default function EmailWindow({
               title="Compose"
               aria-label="Compose"
               onClick={() => {}}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
             >
               <PencilLine className="h-4 w-4 text-neutral-300" />
             </button>
@@ -243,14 +243,14 @@ export default function EmailWindow({
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
               aria-label="Minimize"
             >
               <Minus className="h-4 w-4 text-neutral-300" />
             </button>
             <button
               type="button"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
               aria-label="Close window"
               onClick={handleClose}
             >
@@ -327,7 +327,7 @@ export default function EmailWindow({
             <button
               type="button"
               aria-label="Close"
-              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
               onClick={() => setViewerOpen(false)}
             >
               <X className="h-4 w-4 text-neutral-300" />

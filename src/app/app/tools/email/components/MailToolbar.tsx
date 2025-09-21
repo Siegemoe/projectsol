@@ -41,12 +41,12 @@ export default function MailToolbar({
   };
 
   return (
-    <div className="flex items-center gap-3 border-b border-neutral-900 px-3 py-2 sm:px-4">
+    <div className="flex items-center gap-3 px-3 py-2 sm:px-4">
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <h2 className="text-sm font-medium text-neutral-200">{day}</h2>
           <span className="text-xs text-neutral-500">{date}</span>
-          <span className="ml-3 rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] text-neutral-300">
+          <span className="ml-3 rounded-full bg-[color:var(--bg-elev-2)] px-2 py-0.5 text-[10px] text-text-dim shadow-hairline">
             New senders {newSendersCount}
           </span>
         </div>
@@ -59,7 +59,7 @@ export default function MailToolbar({
           id={providerSelectId}
           value={providerId}
           onChange={handleProviderChange}
-          className="rounded-lg bg-neutral-900 px-2 py-1 text-xs text-neutral-300 outline-none"
+          className="rounded-lg bg-[color:var(--bg-elev-2)] px-2 py-1 text-xs text-text outline-none"
         >
           {providerList.map((p) => (
             <option key={p.id} value={p.id}>
@@ -79,7 +79,7 @@ export default function MailToolbar({
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search mail"
           enterKeyHint="search"
-          className="w-40 rounded-lg border border-neutral-900 bg-neutral-900/60 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-700 sm:w-56"
+          className="w-40 rounded-lg bg-[color:var(--bg-elev-2)] px-2 py-1 text-xs text-text placeholder:text-text-dim outline-none focus:outline-none sm:w-56"
         />
       </div>
 
@@ -91,7 +91,7 @@ export default function MailToolbar({
             title={a.label}
             aria-label={a.label}
             onClick={a.onClick}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
           >
             <a.icon className="h-4 w-4 text-neutral-300" />
           </button>

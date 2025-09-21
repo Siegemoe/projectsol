@@ -49,7 +49,7 @@ function Item({
   const Icon = item.icon;
   const className = [
     "group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm transition",
-    active ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text shadow-glow" : "hover:bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
+    active ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text" : "hover:bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
     item.disabled ? "opacity-60 pointer-events-none" : "",
   ].join(" ");
 
@@ -273,7 +273,7 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text hover:shadow-glow shadow-hairline"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4 text-neutral-300" />
@@ -394,7 +394,7 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
                 }
                 setMenuOpen((v) => !v);
               }}
-              className="mb-2 flex w-full items-center gap-2 rounded-xl bg-[color:var(--bg-elev-2)] px-3 py-2 hover:shadow-glow shadow-hairline text-text"
+              className="mb-2 flex w-full items-center gap-2 rounded-xl bg-[color:var(--bg-elev-2)] px-3 py-2 shadow-hairline text-text"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
             >

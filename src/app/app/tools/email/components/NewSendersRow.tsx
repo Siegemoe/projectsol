@@ -23,10 +23,10 @@ export default function NewSendersRow({ items }: { items: NewSender[] }) {
         return (
           <div
             key={card.id}
-            className="w-[18rem] shrink-0 snap-start rounded-xl border border-neutral-900 bg-neutral-950 px-3 py-3 shadow-sm"
+            className="w-[18rem] shrink-0 snap-start rounded-xl bg-[color:var(--bg-elev-2)] px-3 py-3 shadow-hairline"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-sm font-medium text-neutral-200">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-sm font-medium text-text shadow-hairline">
                 {card.sender.initials ?? "NS"}
               </div>
               <div className="min-w-0">
@@ -47,7 +47,7 @@ export default function NewSendersRow({ items }: { items: NewSender[] }) {
                 className={`inline-flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition ${
                   decision === "accepted"
                     ? "border-green-500/30 bg-green-500/10 text-green-300"
-                    : "border-neutral-900 bg-neutral-900 text-neutral-300 hover:bg-neutral-800"
+                    : "bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
                 }`}
               >
                 <Check className="h-4 w-4" />
@@ -59,7 +59,7 @@ export default function NewSendersRow({ items }: { items: NewSender[] }) {
                 className={`inline-flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition ${
                   decision === "blocked"
                     ? "border-red-500/30 bg-red-500/10 text-red-300"
-                    : "border-neutral-900 bg-neutral-900 text-neutral-300 hover:bg-neutral-800"
+                    : "bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
                 }`}
               >
                 <X className="h-4 w-4" />

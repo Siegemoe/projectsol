@@ -9,7 +9,7 @@ export default function HomePage(): React.ReactElement {
         <section className="panel p-4">
           <header className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-neutral-200">Tasks</h2>
-            <span className="h-1 w-16 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
+            <span className="h-1 w-16 rounded-full bg-[var(--accent)]" />
           </header>
           <ul className="space-y-2 text-sm text-neutral-300">
             <li className="rounded-lg bg-[color:var(--bg-elev-2)] px-3 py-2 text-text shadow-hairline">Website Redesign</li>
@@ -23,9 +23,9 @@ export default function HomePage(): React.ReactElement {
           <header className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-wide text-neutral-200">Updates</h2>
             <div className="flex items-center gap-1 text-xs text-neutral-500">
-              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline hover:shadow-glow">New</button>
-              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline hover:shadow-glow">Sort</button>
-              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline hover:shadow-glow">View</button>
+              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline">New</button>
+              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline">Sort</button>
+              <button className="rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline">View</button>
             </div>
           </header>
           <div className="space-y-2">
@@ -68,7 +68,7 @@ export default function HomePage(): React.ReactElement {
             />
             <button
               type="button"
-              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
               aria-label="Send"
             >
               {"\u27A4"}

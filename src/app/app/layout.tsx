@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     : null;
 
   return (
-    <div className="flex h-[calc(100vh-56px)] -mt-10 w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+    <div className="flex min-h-dvh w-full">
       <AppViewportLock />
       {/* App shell with central App Bar */}
       <section className="flex-1 flex flex-col overflow-hidden w-full">

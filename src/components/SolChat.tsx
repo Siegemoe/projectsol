@@ -195,7 +195,7 @@ export default function SolChat({
                   className={[
                     "max-w-[85%] whitespace-pre-wrap text-sm",
                     isUser
-                      ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text shadow-glow"
+                      ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text"
                       : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text shadow-hairline",
                   ].join(" ")}
                 >
@@ -231,7 +231,7 @@ export default function SolChat({
             <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
               <button
                 type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
                 aria-label="Add"
               >
                 +
@@ -241,7 +241,7 @@ export default function SolChat({
                 <button
                   type="button"
                   onClick={() => setEmailOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline hover:shadow-glow"
+                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
                   aria-label="Open Email"
                   title="Email"
                 >
@@ -252,7 +252,7 @@ export default function SolChat({
             <button
               type="submit"
               disabled={loading || input.trim().length === 0}
-              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow disabled:opacity-60"
+              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
               aria-label="Send"
             >
               {"\u003e"}

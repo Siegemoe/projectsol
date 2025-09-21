@@ -7,7 +7,7 @@ export default function CalendarPage(): React.ReactElement {
         <div className="mb-3 text-sm uppercase tracking-widest text-neutral-500">Calendar</div>
         <h1 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-100">Coming Soon</h1>
         <div className="mx-auto h-2 w-48 overflow-hidden rounded-full bg-[color:var(--bg-elev-2)] shadow-hairline">
-          <div className="h-2 w-1/3 animate-pulse rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)]" />
+          <div className="h-2 w-1/3 animate-pulse rounded-full bg-[var(--accent)]" />
         </div>
       </div>
     </div>

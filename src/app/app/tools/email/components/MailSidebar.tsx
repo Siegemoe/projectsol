@@ -39,7 +39,7 @@ function Item({
       className={cn(
         "group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition",
         active
-          ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text shadow-glow"
+          ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text"
           : "hover:bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
         item.disabled ? "opacity-60 pointer-events-none" : ""
       )}
