@@ -321,7 +321,7 @@ export default function SolChat({
   return (
     <div ref={rootRef} className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
       {/* Scrollable messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 py-4 scroll-hover">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 pb-24 scroll-hover">
         <div className="mx-auto flex max-w-4xl flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";
@@ -357,8 +357,8 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Composer: sticky at bottom, Gemini-style bubble */}
-      <div className="sticky bottom-0 mt-auto bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
+      {/* Composer: fixed to bottom of chat column */}
+      <div className="absolute bottom-0 left-0 right-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 z-20">
         <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
           <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
             <textarea
