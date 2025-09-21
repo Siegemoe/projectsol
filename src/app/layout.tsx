@@ -35,8 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="border-b border-neutral-800">
           <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
             <Link href={"/" as Route} className="flex items-center gap-3 hover:opacity-90">
-              <img src="/logo-sol.svg?v=1" alt="Sol" className="h-7 w-7 lg:h-8 lg:w-8" />
-              <div className="font-semibold tracking-tight">ProjectSol</div>
+            <div className="font-semibold tracking-tight">ProjectSol</div>
             </Link>
             <nav className="flex items-center gap-3">
               {/* Removed Home and Chat from the top header per request */}

@@ -185,7 +185,7 @@ export default function SolChat({
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Scrollable messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 scroll-hover">
         <div className="mx-auto flex max-w-3xl flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";

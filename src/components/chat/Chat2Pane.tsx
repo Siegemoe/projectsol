@@ -13,13 +13,18 @@ export default function Chat2Pane() {
   const [activeId, setActiveId] = useState<string | null>("t1");
 
   return (
-    <div className="flex h-full min-h-0 w-full bg-bg">
+    <div className="grid h-full min-h-0 w-full bg-bg grid-cols-[18rem_1px_1fr]">
+      {/* Left sidebar - fixed width column */}
       <ThreadsSidebar activeId={activeId} onSelect={setActiveId} />
+
+      {/* Hairline separator column */}
       <div
-        className="w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.06),transparent)]"
+        className="bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.06),transparent)]"
         aria-hidden="true"
       />
-      <div className="min-w-0 flex-1 bg-bg-1">
+
+      {/* Chat pane - fills remaining space */}
+      <div className="min-w-0 bg-bg-1 h-full flex flex-col">
         <SolChat title="Sol" apiPath="/api/sol-chat" />
       </div>
     </div>
