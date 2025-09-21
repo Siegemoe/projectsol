@@ -118,7 +118,9 @@ export async function GET(req: NextRequest) {
       expiryDateMs: typeof tokens.expiry_date === "number" ? tokens.expiry_date : null,
     });
 
-    const redirect = NextResponse.redirect(new URL(safeNext, url.origin), 303);
+    const redirectUrl = new URL(safeNext, url.origin);
+    const redirect = NextResponse.redirect(redirectUrl, 303);
+
     // Clear state + next cookies
     redirect.cookies.set({
       name: "gmail_oauth_state",
@@ -138,23 +140,20 @@ export async function GET(req: NextRequest) {
       sameSite: "lax",
       secure: url.protocol === "https:",
     });
+
     // Apply supabase cookie ops
-    for (const op of cookieOps) redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
+    for (const op of cookieOps) {
+      redirect.cookies.set({ name: op.name, value: op.value, ...op.options });
+    }
     return redirect;
-  } catch (e: any) {
-    const redirect = NextResponse.redirect(new URL(safeNext + (safeNext.includes("?") ? "&" : "?") + "error=oauth_error", url.origin), 303);
-    // Clear state + next cookies
+  } catch (e) {
+    console.error("Gmail OAuth callback error:", e);
+    const redirectUrl = new URL(safeNext, url.origin);
+    redirectUrl.searchParams.set("error", "oauth_error");
+    const redirect = NextResponse.redirect(redirectUrl, 303);
+    // Clear state cookie
     redirect.cookies.set({
       name: "gmail_oauth_state",
-      value: "",
-      httpOnly: true,
-      path: "/",
-      maxAge: 0,
-      sameSite: "lax",
-      secure: url.protocol === "https:",
-    });
-    redirect.cookies.set({
-      name: "gmail_oauth_next",
       value: "",
       httpOnly: true,
       path: "/",

@@ -25,7 +25,7 @@ function requireEnv(name: string): string {
 function getEncryptionKey(): Buffer {
   const raw = requireEnv("ENCRYPTION_KEY").trim();
   // Try hex
-  const hexOk = /^[0-9a-fA-F]+$/.test(raw) && (raw.length === 64 || raw.length === 32);
+  const hexOk = /^[0-9a-fA-F]+$/.test(raw) && raw.length === 64;
   if (hexOk) {
     const key = Buffer.from(raw, "hex");
     if (key.length === 16) {
@@ -39,7 +39,6 @@ function getEncryptionKey(): Buffer {
   if (b64.length === 32) return b64;
   throw new Error("ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256-GCM).");
 }
-
 /**
  * AES-256-GCM encrypt/decrypt
  * Stored as: v1:base64(iv):base64(cipher):base64(tag)
@@ -396,16 +395,21 @@ export async function fetchInboxSections(gmail: gmail_v1.Gmail, pageSize = 25): 
     maxResults: pageSize,
   });
   const threads: Thread[] = [];
-  for (const t of list.data.threads || []) {
-    const thr = await gmail.users.threads.get({ userId: "me", id: t.id! });
-    const mapped = mapGmailThreadToThread(thr.data, "inbox");
-    if (mapped) threads.push(mapped);
-  }
+  const threadPromises = (list.data.threads || []).map(async (t) => {
+    try {
+      const thr = await gmail.users.threads.get({ userId: "me", id: t.id! });
+      return mapGmailThreadToThread(thr.data, "inbox");
+    } catch (err) {
+      console.error(`Failed to fetch thread ${t.id}:`, err);
+      return null;
+    }
+  });
+  const results = await Promise.all(threadPromises);
+  threads.push(...results.filter(Boolean) as Thread[]);
   // Sort by receivedAt desc
   threads.sort((a, b) => (a.receivedAt > b.receivedAt ? -1 : 1));
   return groupByDateBuckets(threads);
 }
-
 /**
  * Get Gmail account primary email address
  */

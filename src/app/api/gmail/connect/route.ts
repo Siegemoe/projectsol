@@ -15,14 +15,28 @@ function enabled(): boolean {
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const backTo = url.searchParams.get("next") || "/app/settings?tab=connections";
+  
+  // Validate backTo is a relative path or same origin
+  const validateRedirect = (redirectUrl: string): string => {
+    try {
+      const parsed = new URL(redirectUrl, url.origin);
+      if (parsed.origin !== url.origin) {
+        return "/app/settings?tab=connections";
+      }
+      return redirectUrl;
+    } catch {
+      // If it's a relative path, it's safe
+      return redirectUrl.startsWith('/') ? redirectUrl : "/app/settings?tab=connections";
+    }
+  };
+  const safeBackTo = validateRedirect(backTo);
 
   // Must be enabled via env
   if (!enabled()) {
-    const res = NextResponse.redirect(new URL(backTo, url.origin), 303);
+    const res = NextResponse.redirect(new URL(safeBackTo, url.origin), 303);
     res.headers.set("X-Gmail", "disabled");
     return res;
   }
-
   // Capture cookie mutations so they can be applied to the redirect response
   const cookieOps: { name: string; value: string; options: CookieOptions }[] = [];
   const supabase = createServerClient(

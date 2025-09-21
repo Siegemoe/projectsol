@@ -47,5 +47,5 @@ export default function PageTransition({ children }: { children: React.ReactNode
   const cls =
     prefersReduced ? "" : dir > 0 ? "slide-enter-left" : dir < 0 ? "slide-enter-right" : "slide-enter-center";
 
-  return <div className={cls}>{children}</div>;
+  return <div className={`${cls} h-full min-h-0`}>{children}</div>;
 }

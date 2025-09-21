@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, Minus, X, RefreshCcw, SlidersHorizontal, PencilLine } from "lucide-react";
 import type { ProviderId, Thread, ThreadSection } from "../types";
 import { providerList, providers } from "../providers";
-import { getSections, getNewSenders } from "../data";
+import { getNewSenders } from "../data";
 import MailSidebar from "./MailSidebar";
 import NewSendersRow from "./NewSendersRow";
 import ThreadList from "./ThreadList";
@@ -75,25 +75,39 @@ export default function EmailWindow({
     storageKey: "mail:chatWidth",
     reverse: true,
   });
-
-
-  // Load mock sections whenever provider/folder changes
+  
+  // Resolve provider with fallback and maintain a request id for cancellation
+  const resolvedProvider = useMemo(() => providers[providerId] ?? providerList[0], [providerId]);
+  const requestIdRef = useRef(0);
+  
+  // Load sections whenever provider or folder changes
   useEffect(() => {
-    let mounted = true;
+    const rid = ++requestIdRef.current;
+    let canceled = false;
     (async () => {
-      const p = providers[providerId] ?? providerList[0];
-      const next = await p.listSections(folder);
-      if (mounted) {
+      try {
+        const next = await resolvedProvider.listSections(folder);
+        if (canceled || requestIdRef.current !== rid) return;
         setSections(next);
         // Reset selection on folder/provider switch
         setSelectedId(null);
+      } catch (error) {
+        console.warn("Failed to load mail sections:", error);
       }
     })();
-    setNewSenders(getNewSenders(providerId));
     return () => {
-      mounted = false;
+      canceled = true;
     };
-  }, [providerId, folder]);
+  }, [resolvedProvider, folder]);
+
+  // Provider-only effect for new senders and provider fallback alignment
+  useEffect(() => {
+    const resolvedId = resolvedProvider.id;
+    if (providerId !== resolvedId) {
+      setProviderId(resolvedId);
+    }
+    setNewSenders(getNewSenders(resolvedId));
+  }, [providerId, resolvedProvider]);
 
   // Lightweight client-side filtering
   const filtered: ThreadSection[] = useMemo(() => {
@@ -217,7 +231,15 @@ export default function EmailWindow({
             <button
               title="Refresh"
               aria-label="Refresh"
-              onClick={() => setSections(getSections(providerId, folder))}
+              onClick={async () => {
+                try {
+                  const next = await resolvedProvider.listSections(folder);
+                  setSections(next);
+                  setSelectedId(null);
+                } catch (error) {
+                  console.warn("Failed to refresh sections:", error);
+                }
+              }}
               className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
             >
               <RefreshCcw className="h-4 w-4 text-neutral-300" />

@@ -8,17 +8,31 @@ BEGIN;
 
 -- 1) Create dedicated extensions schema owned by postgres
 CREATE SCHEMA IF NOT EXISTS extensions AUTHORIZATION postgres;
+-- Ensure owner is postgres even if schema pre-existed
+ALTER SCHEMA extensions OWNER TO postgres;
 
 -- 2) Lock down the schema: remove public access, grant only what is needed
 REVOKE ALL ON SCHEMA extensions FROM PUBLIC;
 GRANT USAGE ON SCHEMA extensions TO postgres;
-GRANT USAGE ON SCHEMA extensions TO authenticated;
-GRANT USAGE ON SCHEMA extensions TO service_role;
+
+DO $
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    EXECUTE 'GRANT USAGE ON SCHEMA extensions TO authenticated';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+    EXECUTE 'GRANT USAGE ON SCHEMA extensions TO service_role';
+  END IF;
+  -- Grant to anon only if you really need it
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    -- EXECUTE 'GRANT USAGE ON SCHEMA extensions TO anon';
+    NULL;
+  END IF;
+END $;
+
 -- NOTE: Do NOT grant to anon unless absolutely required by your app.
 -- If needed, uncomment the following line:
--- GRANT USAGE ON SCHEMA extensions TO anon;
-
--- 3) Move the pgvector extension (named "vector") into the extensions schema if not already
+-- GRANT USAGE ON SCHEMA extensions TO anon;-- 3) Move the pgvector extension (named "vector") into the extensions schema if not already
 DO $$
 DECLARE
   target_schema text := 'extensions';

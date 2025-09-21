@@ -21,8 +21,8 @@ importers:
         specifier: ^10.3.0
         version: 10.3.0
       googleapis:
-        specifier: ^160.0.0
-        version: 160.0.0
+        specifier: ^159.0.0
+        version: 159.0.0
       lucide-react:
         specifier: ^0.542.0
         version: 0.542.0(react@18.3.1)
@@ -1777,8 +1777,8 @@ packages:
     resolution: {integrity: sha512-66if47It7y+Sab3HMkwEXx1kCq9qUC9px8ZXoj1CMrmLmUw81GpbnsNlXnlyZyGbGPGcj+tDD9XsZ23m7GLaJQ==}
     engines: {node: '>=18.0.0'}
 
-  googleapis@160.0.0:
-    resolution: {integrity: sha512-lAGFQVSeYvWKCxeCQKo20xWFFDgnWuJYbLn92IgLrT4UTYVOGdrZ9XTqgWJf316isE9KdfuDY5X8Tu4ZrXSFig==}
+  googleapis@159.0.0:
+    resolution: {integrity: sha512-halby2+lQwHNxUDk70aQNXP1BlBwdwr7svTJZvDi7vKwrWbVMKhVrZ86h8p3zRcWbO4qAgLQ4ODAf8TgD3DhGQ==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -5218,7 +5218,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  googleapis@160.0.0:
+  googleapis@159.0.0:
     dependencies:
       google-auth-library: 10.3.0
       googleapis-common: 8.0.0

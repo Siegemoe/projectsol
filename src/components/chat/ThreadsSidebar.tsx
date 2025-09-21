@@ -1,31 +1,46 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Star, Archive, Trash2, Plus } from "lucide-react";
-
-export type ThreadMeta = {
-  id: string;
-  title: string;
-  lastMessage: string;
-  starred?: boolean;
-  archived?: boolean;
-};
+import {
+  ThreadMeta,
+  getThreads,
+  onThreadsChanged,
+  createThread,
+  updateThread,
+  deleteThread,
+  getMessages,
+} from "@/hooks/useChatStore";
 
 type Props = {
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   activeId?: string | null;
 };
 
-const seed: ThreadMeta[] = [
-  { id: "t1", title: "Project Alpha", lastMessage: "Kickoff notes", starred: true },
-  { id: "t2", title: "Marketing Plan", lastMessage: "Budget draft" },
-  { id: "t3", title: "Support - Lucas", lastMessage: "Issue #4831" },
-  { id: "t4", title: "General", lastMessage: "Random thoughts" },
-];
+function snippet(text: string, words = 10): string {
+  if (!text) return "";
+  const arr = text.trim().split(/\s+/);
+  const s = arr.slice(0, words).join(" ");
+  return arr.length > words ? `${s}…` : s;
+}
 
 export default function ThreadsSidebar({ onSelect, activeId }: Props) {
-  const [threads, setThreads] = useState<ThreadMeta[]>(seed);
+  const [threads, setThreads] = useState<ThreadMeta[]>([]);
   const [filter, setFilter] = useState<"all" | "starred" | "archived">("all");
+
+  // Load + subscribe to changes
+  useEffect(() => {
+    setThreads(getThreads());
+    const off = onThreadsChanged(() => setThreads(getThreads()));
+    return off;
+  }, []);
+
+  // Auto-select the newest thread if none is selected
+  useEffect(() => {
+    if (!activeId && threads.length > 0) {
+      onSelect(threads[0].id);
+    }
+  }, [threads, activeId, onSelect]);
 
   const list = useMemo(() => {
     let v = threads;
@@ -34,22 +49,32 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
     return v;
   }, [threads, filter]);
 
+  // Backfill lastPreview for legacy threads (without lastPreview) once
+  useEffect(() => {
+    const missing = threads.filter((t) => typeof t.lastPreview === "undefined");
+    if (missing.length === 0) return;
+    missing.forEach((t) => {
+      const msgs = getMessages(t.id);
+      const last = msgs[msgs.length - 1];
+      const preview = last ? `${last.role === "user" ? "You" : "Sol"}: ${snippet(last.content)}` : "";
+      updateThread(t.id, { lastPreview: preview });
+    });
+  }, [threads]);
+
   function toggleStar(id: string) {
-    setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t)));
+    const t = threads.find((x) => x.id === id);
+    updateThread(id, { starred: !t?.starred });
   }
   function toggleArchive(id: string) {
-    setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, archived: !t.archived } : t)));
+    const t = threads.find((x) => x.id === id);
+    updateThread(id, { archived: !t?.archived });
   }
   function remove(id: string) {
-    setThreads((prev) => prev.filter((t) => t.id !== id));
+    deleteThread(id);
+    if (activeId === id) onSelect(null);
   }
   function addThread() {
-    const n = {
-      id: `t${Date.now()}`,
-      title: "New Chat",
-      lastMessage: "Start a conversation…",
-    };
-    setThreads((prev) => [n, ...prev]);
+    const n = createThread("New Chat");
     onSelect(n.id);
   }
 
@@ -93,11 +118,12 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3 scroll-hover">
         {list.length === 0 ? (
-          <div className="p-3 text-center text-xs text-neutral-500">No threads</div>
+          <div className="p-3 text-center text-xs text-neutral-500">No threads yet</div>
         ) : (
           <ul className="space-y-1">
             {list.map((t) => {
               const active = t.id === activeId;
+              const lastText = t.lastPreview ?? "";
               return (
                 <li key={t.id}>
                   <div
@@ -114,7 +140,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                   >
                     <div className="min-w-0 pr-2">
                       <div className="truncate text-sm text-text">{t.title}</div>
-                      <div className="truncate text-xs text-text-dim">{t.lastMessage}</div>
+                      <div className="truncate text-xs text-text-dim">{lastText || "Empty"}</div>
                     </div>
                     <div className="mt-1 flex items-center gap-1">
                       <button
