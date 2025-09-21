@@ -13,7 +13,7 @@ export default function Chat2Pane() {
   const [activeId, setActiveId] = useState<string | null>("t1");
 
   return (
-    <div className="grid h-full min-h-0 w-full bg-bg grid-cols-[18rem_1px_1fr]">
+    <div className="grid h-full min-h-0 w-full bg-bg" style={{ gridTemplateColumns: "18rem 1px minmax(0,1fr)" }}>
       {/* Left sidebar - fixed width column */}
       <ThreadsSidebar activeId={activeId} onSelect={setActiveId} />
 
