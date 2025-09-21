@@ -30,15 +30,7 @@ const INITIAL_GREETING =
 interface SolChatProps {
   title?: string;
   apiPath?: string;
-  /**
-   * When false, hides the Email tool and disables the email overlay behavior.
-   * Useful when embedding SolChat inside the Email tool as the right-side pane.
-   */
   emailToolEnabled?: boolean;
-  /**
-   * Optional: current thread ID. When provided, messages are loaded/saved
-   * from a local store so history persists. When absent, chat is ephemeral.
-   */
   threadId?: string;
 }
 
@@ -49,10 +41,7 @@ export default function SolChat({
   threadId,
 }: SolChatProps) {
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: INITIAL_GREETING,
-    },
+    { role: "assistant", content: INITIAL_GREETING },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,21 +52,25 @@ export default function SolChat({
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const { startStream } = useStreamedChat(apiPath);
   const messageRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const { startStream } = useStreamedChat(apiPath);
   const [timelinePage, setTimelinePage] = useState(0);
 
-  // Layout refs for positioning the fixed TimelineRail
+  // Positioning for right-side rail and composer portal alignment
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [railOffset, setRailOffset] = useState<{ top: number; right: number; bottom: number }>({
     top: 72,
     right: 16,
     bottom: 96,
   });
+  const [composerBox, setComposerBox] = useState<{ left: number; width: number; bottom: number }>({
+    left: 0,
+    width: 0,
+    bottom: 8,
+  });
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
+  useEffect(() => setMounted(true), []);
 
   // Keep messages scrolled to bottom when they change
   useEffect(() => {
@@ -115,7 +108,6 @@ export default function SolChat({
       saveMessages(threadId, [seed]);
       setMessages([{ role: "assistant", content: INITIAL_GREETING }]);
     }
-    // reset timeline page to newest
     setTimelinePage(Math.max(0, Math.ceil((stored.length || 1) / 14) - 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]);
@@ -142,14 +134,12 @@ export default function SolChat({
       const url = new URL(window.location.href);
       const shouldOpen = url.searchParams.get("email");
       if (shouldOpen === "1") {
-        // Validate folder against allowed values before setting
         const rawFolder = (url.searchParams.get("folder") || "").toLowerCase();
         const allowedFolders: Folder[] = ["inbox", "pinned", "drafts", "sent", "trash"];
         if (rawFolder && allowedFolders.includes(rawFolder as Folder)) {
           setEmailFolder(rawFolder as Folder);
         }
         setEmailOpen(true);
-        // Clean the URL (only after successful parsing/validation)
         const params = new URLSearchParams(url.searchParams);
         params.delete("email");
         params.delete("folder");
@@ -161,7 +151,7 @@ export default function SolChat({
     }
   }, [emailToolEnabled]);
 
-  // Broadcast overlay open/close state to the sidebar so it can expand/collapse the Email menu
+  // Broadcast overlay open/close state
   useEffect(() => {
     if (!emailToolEnabled) return;
     try {
@@ -171,7 +161,7 @@ export default function SolChat({
     } catch {}
   }, [emailOpen, emailToolEnabled]);
 
-  // Measure to position the TimelineRail so it aligns with the AppBar content (green line)
+  // Measure chat column to align rail and composer portal
   useEffect(() => {
     function measure() {
       const el = rootRef.current;
@@ -181,19 +171,17 @@ export default function SolChat({
 
       if (el) {
         const rect = el.getBoundingClientRect();
-        // place slightly below the top of chat content to clear shadows
         top = Math.max(56, Math.round(rect.top) + 8);
+        setComposerBox({
+          left: Math.round(rect.left),
+          width: Math.round(rect.width),
+          bottom: 0,
+        });
       }
-
-      // Align near the viewport's right edge
       right = 12;
-
-      // Reserve space above the composer
       bottom = 88;
-
       setRailOffset({ top, right, bottom });
     }
-
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, { passive: true } as any);
@@ -215,14 +203,12 @@ export default function SolChat({
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    // Determine model from sidebar selection (localStorage), fallback to DeepSeek chat
     const model =
       (typeof window !== "undefined" && localStorage.getItem("app:model")) ||
       "deepseek/deepseek-chat";
     const temperature = 0.3;
     const system: string | undefined = undefined;
 
-    // Add user message
     const nextMessages = [...messages, { role: "user", content: trimmed } as Message];
     setMessages(nextMessages);
     if (threadId) {
@@ -267,7 +253,6 @@ export default function SolChat({
         temperature,
         system,
         onOpen: () => {
-          // Seed assistant response
           setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
           if (threadId) {
             appendMessage(threadId, {
@@ -283,7 +268,6 @@ export default function SolChat({
         },
       });
     } catch (err: any) {
-      // If streaming failed, append an error assistant message
       const errorContent =
         "I ran into an error reaching the model API. Please try again." +
         (err?.message ? `\n\nDetails: ${err.message}` : "");
@@ -320,8 +304,11 @@ export default function SolChat({
 
   return (
     <div ref={rootRef} className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
-      {/* Scrollable messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 pb-24 scroll-hover">
+      {/* Scrollable messages area (extra bottom padding so fixed composer won't overlap) */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 pb-28 scroll-hover"
+      >
         <div className="mx-auto flex max-w-4xl flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";
@@ -357,68 +344,83 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Composer: fixed to bottom of chat column */}
-      <div className="absolute bottom-0 left-0 right-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 z-20">
-        <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
-          <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              rows={1}
-              placeholder={`Ask ${title}`}
-              className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
-            />
-            <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
-              <button
-                type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                aria-label="Add"
-              >
-                +
-              </button>
-              <span>Tools</span>
-              {emailToolEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setEmailOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
-                  aria-label="Open Email"
-                  title="Email"
-                >
-                  Email
-                </button>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={loading || input.trim().length === 0}
-              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
-              aria-label="Send"
+      {/* Composer rendered via portal to hug viewport bottom and align with chat column */}
+      {mounted
+        ? createPortal(
+            <div
+              className="bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 z-50"
+              style={{
+                position: "fixed",
+                left: composerBox.left,
+                width: composerBox.width,
+                bottom: 0,
+              }}
             >
-              {"\u003e"}
-            </button>
-          </div>
-        </form>
-        <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
-          Sol can make mistakes, fact check her.
-        </div>
-      </div>
+              <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
+                <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    rows={1}
+                    placeholder={`Ask ${title}`}
+                    className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
+                  />
+                  <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
+                    <button
+                      type="button"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
+                      aria-label="Add"
+                    >
+                      +
+                    </button>
+                    <span>Tools</span>
+                    {emailToolEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setEmailOpen(true)}
+                        className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
+                        aria-label="Open Email"
+                        title="Email"
+                      >
+                        Email
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || input.trim().length === 0}
+                    className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
+                    aria-label="Send"
+                  >
+                    {"\u003e"}
+                  </button>
+                </div>
+              </form>
+              <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
+                Sol can make mistakes, fact check her.
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
 
-      {/* Right-side timeline rail rendered in a portal to escape transformed containers */}
-      {mounted ? createPortal(
-        <TimelineRail
-          items={timelineItems}
-          page={timelinePage}
-          onPageChange={setTimelinePage}
-          onJumpTo={jumpTo}
-          topOffset={railOffset.top}
-          rightOffset={railOffset.right}
-          bottomOffset={railOffset.bottom}
-        />,
-        document.body
-      ) : null}
+      {/* Right-side timeline rail rendered in a portal */}
+      {mounted
+        ? createPortal(
+            <TimelineRail
+              items={timelineItems}
+              page={timelinePage}
+              onPageChange={setTimelinePage}
+              onJumpTo={jumpTo}
+              topOffset={railOffset.top}
+              rightOffset={railOffset.right}
+              bottomOffset={railOffset.bottom}
+            />,
+            document.body
+          )
+        : null}
 
       {/* Email overlay panel (slides in from the left) */}
       {emailToolEnabled && (
