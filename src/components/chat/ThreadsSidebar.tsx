@@ -54,9 +54,9 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   }
 
   return (
-    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] ring-1 ring-[color:var(--accent)]/30 z-30">
+    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] z-30">
       <div className="flex items-center justify-between px-3 py-2">
-        <div className="text-sm font-medium text-neutral-200">Threads</div>
+        <div className="text-sm font-medium text-text">Chat History</div>
         <button
           type="button"
           title="New chat"
@@ -64,10 +64,9 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
           className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-sm text-text shadow-hairline"
         >
           <Plus className="h-4 w-4 text-neutral-300" />
-          <span>New</span>
+          <span>New chat</span>
         </button>
       </div>
-      <div className="px-3 pb-1 text-xs text-[color:var(--accent)]/80">debug: {list.length} threads</div>
       <div className="flex items-center gap-2 p-2 text-xs">
         <button
           className={btn(filter === "all")}
