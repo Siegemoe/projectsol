@@ -65,24 +65,14 @@ export default function SolChat({
   const { startStream } = useStreamedChat(apiPath);
   const messageRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [timelinePage, setTimelinePage] = useState(0);
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const [railOffset, setRailOffset] = useState<{ top: number; right: number }>({ top: 72, right: 16 });
 
-  useEffect(() => {
-    function measure() {
-      const el = rootRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      setRailOffset((prev) => ({ top: Math.max(56, Math.round(rect.top) + 8), right: 16 }));
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure as any, { passive: true } as any);
-    return () => {
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure as any);
-    };
-  }, []);
+  // Layout refs for positioning the fixed TimelineRail
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [railOffset, setRailOffset] = useState<{ top: number; right: number; bottom: number }>({
+    top: 72,
+    right: 16,
+    bottom: 96,
+  });
 
   // Keep messages scrolled to bottom when they change
   useEffect(() => {
@@ -175,6 +165,43 @@ export default function SolChat({
       );
     } catch {}
   }, [emailOpen, emailToolEnabled]);
+
+  // Measure to position the TimelineRail so it aligns with the AppBar content (green line)
+  useEffect(() => {
+    function measure() {
+      const el = rootRef.current;
+      let top = 72;
+      let right = 16;
+      let bottom = 96;
+
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // place slightly below the top of chat content to clear shadows
+        top = Math.max(56, Math.round(rect.top) + 8);
+      }
+
+      // Align the right edge with the right edge of AppBar's max-width container
+      const container = document.querySelector("header .max-w-7xl") as HTMLElement | null;
+      if (container) {
+        const c = container.getBoundingClientRect();
+        const gutter = 8; // small gap from container edge
+        right = Math.max(0, Math.round(window.innerWidth - c.right)) + gutter;
+      }
+
+      // Reserve space above the composer
+      bottom = 88;
+
+      setRailOffset({ top, right, bottom });
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, { passive: true } as any);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure as any);
+    };
+  }, []);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -379,7 +406,7 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Right-side timeline rail */}
+      {/* Right-side timeline rail (fixed, aligned with AppBar container) */}
       <TimelineRail
         items={timelineItems}
         page={timelinePage}
@@ -387,6 +414,7 @@ export default function SolChat({
         onJumpTo={jumpTo}
         topOffset={railOffset.top}
         rightOffset={railOffset.right}
+        bottomOffset={railOffset.bottom}
       />
 
       {/* Email overlay panel (slides in from the left) */}
