@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { createPortal } from "react-dom";
 import { useStreamedChat } from "@/hooks/useStreamedChat";
 import { coerceFolder } from "@/lib/sanitize";
 import TimelineRail, { type TimelineItem } from "@/components/chat/TimelineRail";
@@ -73,6 +74,10 @@ export default function SolChat({
     right: 16,
     bottom: 96,
   });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Keep messages scrolled to bottom when they change
   useEffect(() => {
@@ -180,13 +185,8 @@ export default function SolChat({
         top = Math.max(56, Math.round(rect.top) + 8);
       }
 
-      // Align the right edge with the right edge of AppBar's max-width container
-      const container = document.querySelector("header .max-w-7xl") as HTMLElement | null;
-      if (container) {
-        const c = container.getBoundingClientRect();
-        const gutter = 8; // small gap from container edge
-        right = Math.max(0, Math.round(window.innerWidth - c.right)) + gutter;
-      }
+      // Align near the viewport's right edge
+      right = 12;
 
       // Reserve space above the composer
       bottom = 88;
@@ -406,16 +406,19 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Right-side timeline rail (fixed, aligned with AppBar container) */}
-      <TimelineRail
-        items={timelineItems}
-        page={timelinePage}
-        onPageChange={setTimelinePage}
-        onJumpTo={jumpTo}
-        topOffset={railOffset.top}
-        rightOffset={railOffset.right}
-        bottomOffset={railOffset.bottom}
-      />
+      {/* Right-side timeline rail rendered in a portal to escape transformed containers */}
+      {mounted ? createPortal(
+        <TimelineRail
+          items={timelineItems}
+          page={timelinePage}
+          onPageChange={setTimelinePage}
+          onJumpTo={jumpTo}
+          topOffset={railOffset.top}
+          rightOffset={railOffset.right}
+          bottomOffset={railOffset.bottom}
+        />,
+        document.body
+      ) : null}
 
       {/* Email overlay panel (slides in from the left) */}
       {emailToolEnabled && (
