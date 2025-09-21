@@ -2,75 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global styles */
+/* Global Theme Tokens - Neon on Black, borderless minimalist */
 :root {
   color-scheme: dark;
-  --accent: #ff6a00;
+
+  /* Core surfaces and text */
+  --bg: #0a0a0a;
+  --bg-elev-1: #0f0f10;
+  --bg-elev-2: #131316;
+  --text: #e7e7ea;
+  --text-dim: #a8a8b3;
+
+  /* Neon palette */
+  --neon-orange: #ff7a18; /* primary brand accent */
+  --neon-cyan: #00ffd1;
+  --neon-magenta: #ff1fb3;
+  --neon-purple: #7c3aed;
+
+  /* Accent selection */
+  --accent: var(--neon-orange);
+
+  /* Glows */
+  --glow-strong: 0 0 32px var(--accent);
+  --glow-soft: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+
+  /* Legacy compat from prior styling (kept to avoid breakage) */
   --accent-500: #ff6a00;
   --accent-600: #ff7a1f;
   --accent-700: #ff8a33;
-  --panel-bg: rgba(10, 10, 10, 0.55); /* glassy black */
-  --panel-ring: rgba(38, 38, 38, 0.6); /* neutral-800/60 */
+  --panel-bg: rgba(10, 10, 10, 0.55);
   --panel-shadow: 0 0 30px rgba(255, 106, 0, 0.08);
 }
 
+/* Base document */
 html, body {
-  height: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+/* Selection */
+::selection {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--text);
 }
 
-/* Hover-only sleek scrollbars for sidebar/nav panes */
-.scroll-hover {
-  /* Firefox: hidden by default */
-  scrollbar-width: none;
+/* Focus (borderless, glow) */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 8px; /* helps inputs/buttons */
 }
 
-/* Show thin scrollbar on hover (Firefox) */
-.scroll-hover:hover {
-  scrollbar-width: thin;
-  scrollbar-color: #52525b transparent; /* thumb color, track transparent */
+/* Links / accent text */
+a, .accent {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-/* WebKit-based browsers */
-.scroll-hover::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+/* Borderless inputs */
+input, textarea, select {
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border: none;
+  border-radius: 10px;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-dim);
+}
+input:focus, textarea:focus, select:focus {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent),
+    var(--glow-soft);
 }
 
-.scroll-hover:hover::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Borderless button */
+.button {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 18%, var(--bg-elev-2)),
+    var(--bg-elev-2)
+  );
+  color: var(--text);
+  border: none;
+  border-radius: 12px;
+  padding: 0.625rem 0.9rem;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
+}
+.button:hover { box-shadow: var(--glow-soft); transform: translateY(-1px); }
+.button:active { transform: translateY(0); opacity: 0.96; }
+
+/* Panels: borderless/glassy with subtle inner hairline and soft neon aura */
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.03), /* faint inner hairline (not a border) */
+    0 10px 30px rgba(0,0,0,0.4),
+    0 0 30px color-mix(in srgb, var(--accent) 10%, transparent),
+    var(--panel-shadow);
 }
 
-.scroll-hover::-webkit-scrollbar-thumb {
-  background-color: #3f3f46; /* neutral-700 */
-  border-radius: 9999px;
+/* Hairline gradient separators instead of borders */
+.separator {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
 }
 
-.scroll-hover:hover::-webkit-scrollbar-thumb {
-  background-color: #52525b; /* neutral-600 */
-}
-
-.scroll-hover::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Utility: hide scrollbars (while allowing scroll) */
-.no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari, Opera */
-}
-
-/* Neon helpers */
-.neon-underline {
-  position: relative;
-}
+/* Neon underline helper */
+.neon-underline { position: relative; }
 .neon-underline::after {
   content: "";
   position: absolute;
@@ -84,13 +137,89 @@ html, body {
   box-shadow: 0 0 12px var(--accent);
 }
 
-/* Panel primitive for borderless/glassy cards */
-.panel {
-  background: var(--panel-bg);
-  backdrop-filter: saturate(120%) blur(6px);
-  -webkit-backdrop-filter: saturate(120%) blur(6px);
-  border-radius: 1rem; /* rounded-2xl */
-  box-shadow: var(--panel-shadow);
-  outline: 1px solid var(--panel-ring);
-  outline-offset: 0; /* simulate subtle ring instead of heavy border */
+/* Scrollbars */
+/* Generic sleek scrollbar (visible) */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--bg-elev-2), color-mix(in srgb, var(--accent) 25%, var(--bg-elev-2)));
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Firefox generic */
+* { scrollbar-color: color-mix(in srgb, var(--accent) 25%, var(--bg-elev-2)) transparent; }
+* { scrollbar-width: thin; }
+
+/* Hover-only sleek scrollbars for sidebar/nav panes (kept from existing code) */
+.scroll-hover {
+  /* Firefox: hidden by default */
+  scrollbar-width: none;
+}
+/* Show thin scrollbar on hover (Firefox) */
+.scroll-hover:hover {
+  scrollbar-width: thin;
+  scrollbar-color: #52525b transparent; /* thumb color, track transparent */
+}
+/* WebKit-based browsers */
+.scroll-hover::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.scroll-hover:hover::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-hover::-webkit-scrollbar-thumb {
+  background-color: #3f3f46; /* neutral-700 */
+  border-radius: 9999px;
+}
+.scroll-hover:hover::-webkit-scrollbar-thumb {
+  background-color: #52525b; /* neutral-600 */
+}
+.scroll-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Utility: hide scrollbars (while allowing scroll) */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* Page slide transitions (borderless, subtle, neon-friendly) */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px) scale(0.99); filter: blur(4px); }
+  to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px) scale(0.99); filter: blur(4px); }
+  to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+@keyframes slideInCenter {
+  from { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.slide-enter-left {
+  animation: slideInLeft 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform, opacity, filter;
+}
+.slide-enter-right {
+  animation: slideInRight 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform, opacity, filter;
+}
+.slide-enter-center {
+  animation: slideInCenter 200ms ease-out;
+  will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter-left,
+  .slide-enter-right,
+  .slide-enter-center {
+    animation: none !important;
+  }
 }

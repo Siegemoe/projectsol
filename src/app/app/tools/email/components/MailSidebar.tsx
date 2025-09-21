@@ -38,14 +38,16 @@ function Item({
       disabled={item.disabled}
       className={cn(
         "group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition",
-        active ? "bg-white/10 text-neutral-100" : "hover:bg-neutral-900 text-neutral-300",
+        active
+          ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text shadow-glow"
+          : "hover:bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
         item.disabled ? "opacity-60 pointer-events-none" : ""
       )}
     >
-      <Icon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-300" />
+      <Icon className="h-4 w-4 text-text-dim group-hover:text-text" />
       <span className="flex-1 text-left">{item.label}</span>
       {typeof item.count === "number" ? (
-        <span className="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full bg-neutral-900 px-1.5 py-0.5 text-[10px] text-neutral-300">
+        <span className="ml-auto inline-flex min-w-[1.75rem] items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] px-1.5 py-0.5 text-[10px] text-text-dim shadow-hairline">
           {item.count}
         </span>
       ) : null}
@@ -88,7 +90,7 @@ export default function MailSidebar({ activeFolder, onChangeFolder, unreadCount,
   ];
 
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-neutral-900 bg-neutral-950 lg:flex lg:flex-col">
+    <aside className="hidden w-60 shrink-0 bg-bg-1 lg:flex lg:flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3 scroll-hover">
         <section className="mb-5">
           <div className="px-2 pb-2 text-xs uppercase tracking-wide text-neutral-500">Mail</div>
@@ -118,16 +120,16 @@ export default function MailSidebar({ activeFolder, onChangeFolder, unreadCount,
         </section>
       </div>
 
-      <div className="border-t border-neutral-900 px-2 py-3">
+      <div className="px-2 py-3 bg-[color:var(--panel-bg)] backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
         <div className="px-2 pb-2 text-xs uppercase tracking-wide text-neutral-500">Shortcuts</div>
         <div className="space-y-1">
           {footer.map((f) => (
             <button
               key={f.label}
               disabled={f.disabled}
-              className="group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-300 hover:bg-neutral-900 disabled:opacity-60"
+              className="group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-dim hover:bg-[color:var(--bg-elev-2)] hover:text-text disabled:opacity-60"
             >
-              <f.icon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-300" />
+              <f.icon className="h-4 w-4 text-text-dim group-hover:text-text" />
               <span>{f.label}</span>
             </button>
           ))}

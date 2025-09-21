@@ -183,13 +183,13 @@ export default function EmailWindow({
         className={
           embedded
             ? "flex h-full w-full flex-col overflow-hidden"
-            : "flex h-full w-full flex-col overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl"
+            : "flex h-full w-full flex-col overflow-hidden panel"
         }
       >
         {/* Title bar with inline controls */}
-        <div className="flex items-center gap-3 border-b border-neutral-900 px-3 py-2">
-          <div className="flex items-center gap-2 text-sm text-neutral-400">
-            <Mail className="h-4 w-4 text-neutral-300" />
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="flex items-center gap-2 text-sm text-text-dim">
+            <Mail className="h-4 w-4 text-text" />
             <span className="text-neutral-200">Mail</span>
             <span className="text-neutral-500">/</span>
             <span className="text-neutral-400 capitalize">{folder}</span>
@@ -208,7 +208,7 @@ export default function EmailWindow({
               onChange={(e) => setQuery(normalizeSearch(e.target.value))}
               placeholder="Search mail"
               enterKeyHint="search"
-              className="w-40 rounded-lg border border-neutral-900 bg-neutral-900/60 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-700 sm:w-56"
+              className="w-40 rounded-lg bg-[color:var(--bg-elev-2)] px-2 py-1 text-xs text-text placeholder:text-text-dim outline-none focus:outline-none sm:w-56"
             />
           </div>
 
@@ -218,7 +218,7 @@ export default function EmailWindow({
               title="Refresh"
               aria-label="Refresh"
               onClick={() => setSections(getSections(providerId, folder))}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
             >
               <RefreshCcw className="h-4 w-4 text-neutral-300" />
             </button>
@@ -226,7 +226,7 @@ export default function EmailWindow({
               title="Filter"
               aria-label="Filter"
               onClick={() => {}}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
             >
               <SlidersHorizontal className="h-4 w-4 text-neutral-300" />
             </button>
@@ -234,7 +234,7 @@ export default function EmailWindow({
               title="Compose"
               aria-label="Compose"
               onClick={() => {}}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
             >
               <PencilLine className="h-4 w-4 text-neutral-300" />
             </button>
@@ -243,14 +243,14 @@ export default function EmailWindow({
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
               aria-label="Minimize"
             >
               <Minus className="h-4 w-4 text-neutral-300" />
             </button>
             <button
               type="button"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
               aria-label="Close window"
               onClick={handleClose}
             >
@@ -272,7 +272,7 @@ export default function EmailWindow({
           ) : null}
 
           {/* Main column */}
-          <div className="flex min-w-0 flex-1 flex-col border-r border-neutral-900">
+          <div className="flex min-w-0 flex-1 flex-col">
 
             {/* New senders cards */}
             <div className="px-3 pb-2 pt-1 sm:px-4">
@@ -298,14 +298,14 @@ export default function EmailWindow({
               role="separator"
               aria-orientation="vertical"
               title="Resize preview"
-              className="w-2 cursor-col-resize hover:bg-neutral-900 active:bg-neutral-900"
+              className="w-2 cursor-col-resize hover:bg-[color:var(--bg-elev-2)] active:bg-[color:var(--bg-elev-2)]"
               onMouseDown={onResizeStart}
               onTouchStart={onResizeStart}
             />
 
             {/* Right-side AI chat */}
             <div
-              className="min-w-[320px] max-w-[600px] border-l border-neutral-900"
+              className="min-w-[320px] max-w-[600px]"
               style={{ width: previewWidth }}
             >
               <SolChat title="Sol" apiPath="/api/sol-chat" emailToolEnabled={false} />
@@ -321,13 +321,13 @@ export default function EmailWindow({
           onClick={() => setViewerOpen(false)}
         >
           <div
-            className="relative w-[min(100%,900px)] h-[min(90vh,600px)] rounded-xl border border-neutral-900 bg-neutral-950 shadow-xl overflow-hidden"
+            className="relative w-[min(100%,900px)] h-[min(90vh,600px)] panel overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               aria-label="Close"
-              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
               onClick={() => setViewerOpen(false)}
             >
               <X className="h-4 w-4 text-neutral-300" />

@@ -49,14 +49,14 @@ function Item({
   const Icon = item.icon;
   const className = [
     "group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm transition",
-    active ? "bg-white/10 text-neutral-100" : "hover:bg-neutral-900 text-neutral-300",
+    active ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text shadow-glow" : "hover:bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
     item.disabled ? "opacity-60 pointer-events-none" : "",
   ].join(" ");
 
   if (item.href) {
     return (
       <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>
-        {Icon ? <Icon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-300" /> : null}
+        {Icon ? <Icon className="h-4 w-4 text-text-dim group-hover:text-text" /> : null}
         <span>{item.label}</span>
       </Link>
     );
@@ -64,7 +64,7 @@ function Item({
 
   return (
     <button className={className} type="button" onClick={item.onClick}>
-      {Icon ? <Icon className="h-4 w-4 text-neutral-400 group-hover:text-neutral-300" /> : null}
+      {Icon ? <Icon className="h-4 w-4 text-text-dim group-hover:text-text" /> : null}
       <span>{item.label}</span>
     </button>
   );
@@ -88,7 +88,7 @@ function SubItem({
       onClick={onClick}
       className={[
         "group flex w-full items-center gap-2 rounded-lg pl-8 pr-2 py-2 text-sm transition",
-        "text-neutral-300 hover:bg-neutral-900",
+        "text-text-dim hover:bg-[color:var(--bg-elev-2)] hover:text-text",
         disabled ? "opacity-60 pointer-events-none" : "",
       ].join(" ")}
     >
@@ -262,9 +262,9 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
   }
 
   return (
-    <aside className={`flex h-full ${collapsed ? "w-12" : "w-[13.5rem]"} flex-col bg-neutral-950`}>
+    <aside className={`flex h-full ${collapsed ? "w-12" : "w-[13.5rem]"} flex-col bg-bg-1`}>
       {/* Sticky brand/section */}
-      <div className="sticky top-0 z-10 border-b border-neutral-900 bg-neutral-950/70 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
+      <div className="sticky top-0 z-10 bg-[color:var(--panel-bg)] px-2 py-2 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
         <div className="relative h-7 flex items-center justify-between">
           {!collapsed && (
             <div className="px-2 text-xs uppercase tracking-wide text-neutral-500">PROJECTSOL</div>
@@ -273,7 +273,7 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800 shadow"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text hover:shadow-glow shadow-hairline"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4 text-neutral-300" />
@@ -288,7 +288,7 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="w-full rounded-lg bg-neutral-900 px-2 py-1 text-xs text-neutral-300 outline-none focus:outline-none"
+              className="w-full rounded-lg bg-[color:var(--bg-elev-2)] px-2 py-1 text-xs text-text outline-none focus:outline-none"
             >
               <option value="deepseek/deepseek-chat">DeepSeek v3.1</option>
               <option value="openai/gpt-5">GPT-5</option>
@@ -375,7 +375,7 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
         </nav>
 
         {/* Footer */}
-        <div className={`sticky bottom-0 border-t border-neutral-900 bg-neutral-950 px-3 py-3 ${collapsed ? "hidden" : ""}`}>
+        <div className={`sticky bottom-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 ${collapsed ? "hidden" : ""}`}>
           <div
             ref={footerRef}
             className="relative"
@@ -394,11 +394,11 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
                 }
                 setMenuOpen((v) => !v);
               }}
-              className="mb-2 flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 hover:bg-neutral-900"
+              className="mb-2 flex w-full items-center gap-2 rounded-xl bg-[color:var(--bg-elev-2)] px-3 py-2 hover:shadow-glow shadow-hairline text-text"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900 overflow-hidden">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] overflow-hidden shadow-hairline">
                 {initialUser?.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -425,13 +425,13 @@ export default function AppSidebar({ initialUser }: { initialUser?: UserInfo }) 
             {menuOpen && initialUser && (
               <div
                 role="menu"
-                className="absolute bottom-12 right-0 z-30 min-w-[12rem] rounded-xl border border-neutral-900 bg-neutral-950 shadow"
+                className="absolute bottom-12 right-0 z-30 min-w-[12rem] rounded-xl bg-[color:var(--panel-bg)] shadow-hairline"
               >
                 <div className="py-1">
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="w-full px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-900 rounded-lg"
+                    className="w-full px-3 py-2 text-left text-sm text-text hover:bg-[color:var(--bg-elev-2)] rounded-lg"
                   >
                     Sign out
                   </button>

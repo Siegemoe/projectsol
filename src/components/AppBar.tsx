@@ -74,24 +74,24 @@ export default function AppBar() {
   }, [focusedIndex, router]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/40">
+    <header className="sticky top-0 z-40 bg-[color:var(--panel-bg)] backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
       <div className="mx-auto grid max-w-7xl grid-cols-[auto,1fr,auto] items-center gap-4 px-4 py-2 md:px-6">
         {/* Brand */}
         <Link href={"/app/home" as Route} className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-sol.svg" alt="ProjectSol" className="h-8 w-8 rounded-full ring-1 ring-neutral-800" />
+          <img src="/logo-sol.svg" alt="ProjectSol" className="h-8 w-8 rounded-full shadow-hairline" />
         </Link>
 
         {/* Tabs Track */}
         <div
           ref={trackRef}
-          className="relative mx-4 w-full max-w-2xl justify-self-center overflow-x-auto overflow-y-hidden rounded-full border border-neutral-900 bg-neutral-950/60 no-scrollbar"
+          className="relative mx-4 w-full max-w-2xl justify-self-center overflow-x-auto overflow-y-hidden rounded-full panel no-scrollbar"
         >
           <div className="relative mx-auto flex min-w-max items-center gap-2 px-2 py-1">
             {/* Underlay pill (CSS transition fallback) */}
             {pill.width > 0 && (
               <div
-                className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[rgba(255,106,0,0.12)] ring-1 ring-[rgba(255,106,0,0.35)] shadow-[0_0_20px_rgba(255,106,0,0.25)]"
+                className="absolute top-1/2 -translate-y-1/2 h-8 rounded-full bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] shadow-[0_0_20px_color-mix(in_srgb,var(--accent)_35%,transparent)]"
                 style={{
                   left: pill.left,
                   width: pill.width,
@@ -113,7 +113,7 @@ export default function AppBar() {
                   ref={(el: HTMLButtonElement | null) => { buttonRefs.current[i] = el; }}
                   className={[
                     "relative z-10 rounded-full px-4 py-1.5 text-sm transition-colors",
-                    active ? "text-neutral-50" : "text-neutral-400 hover:text-neutral-200",
+                    active ? "text-text" : "text-text-dim hover:text-text",
                   ].join(" ")}
                   style={{
                     WebkitTapHighlightColor: "transparent",

@@ -195,8 +195,8 @@ export default function SolChat({
                   className={[
                     "max-w-[85%] whitespace-pre-wrap text-sm",
                     isUser
-                      ? "rounded-2xl px-3 py-2 bg-white text-neutral-900 shadow"
-                      : "text-neutral-200",
+                      ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text shadow-glow"
+                      : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text shadow-hairline",
                   ].join(" ")}
                 >
                   {m.content}
@@ -207,7 +207,7 @@ export default function SolChat({
 
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
+              <div className="rounded-2xl px-3 py-2 text-sm text-text bg-[color:var(--bg-elev-2)] shadow-hairline">
                 Thinking…
               </div>
             </div>
@@ -216,9 +216,9 @@ export default function SolChat({
       </div>
 
       {/* Composer: sticky at bottom, Gemini-style bubble */}
-      <div className="sticky bottom-0 mt-auto bg-neutral-950/60 px-3 py-3 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/30">
+      <div className="sticky bottom-0 mt-auto bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
         <form onSubmit={sendMessage} className="mx-auto max-w-3xl">
-          <div className="relative rounded-2xl bg-neutral-900 ring-1 ring-neutral-800 p-2 pr-12">
+          <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
             <textarea
               ref={inputRef}
               value={input}
@@ -226,12 +226,12 @@ export default function SolChat({
               onKeyDown={onKeyDown}
               rows={1}
               placeholder={`Ask ${title}`}
-              className="w-full resize-none bg-transparent text-sm leading-5 text-neutral-100 outline-none placeholder:text-neutral-500 min-h-[36px]"
+              className="w-full resize-none bg-transparent text-sm leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px]"
             />
             <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
               <button
                 type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
                 aria-label="Add"
               >
                 +
@@ -241,7 +241,7 @@ export default function SolChat({
                 <button
                   type="button"
                   onClick={() => setEmailOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-md bg-neutral-800 px-2 py-1 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
+                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline hover:shadow-glow"
                   aria-label="Open Email"
                   title="Email"
                 >
@@ -252,14 +252,14 @@ export default function SolChat({
             <button
               type="submit"
               disabled={loading || input.trim().length === 0}
-              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800 text-neutral-100 ring-1 ring-neutral-700 hover:bg-neutral-700 disabled:opacity-60"
+              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow disabled:opacity-60"
               aria-label="Send"
             >
               {"\u003e"}
             </button>
           </div>
         </form>
-        <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-neutral-500 text-center">
+        <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
           Sol can make mistakes, fact check her.
         </div>
       </div>
@@ -268,7 +268,7 @@ export default function SolChat({
       {emailToolEnabled && (
         <div
           className={[
-            "pointer-events-auto absolute inset-0 z-20 bg-neutral-950 transition-transform duration-300",
+            "pointer-events-auto absolute inset-0 z-20 bg-bg transition-transform duration-300",
             emailOpen ? "translate-x-0 ease-out" : "-translate-x-full ease-in",
           ].join(" ")}
           aria-hidden={!emailOpen}

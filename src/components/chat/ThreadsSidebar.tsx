@@ -54,14 +54,14 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   }
 
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-neutral-900 bg-neutral-950/40">
-      <div className="flex items-center justify-between border-b border-neutral-900 px-3 py-2">
+    <aside className="flex h-full w-72 shrink-0 flex-col bg-bg-1 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
+      <div className="flex items-center justify-between px-3 py-2">
         <div className="text-sm font-medium text-neutral-300">Threads</div>
         <button
           type="button"
           title="New chat"
           onClick={addThread}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
         >
           <Plus className="h-4 w-4 text-neutral-300" />
         </button>
@@ -106,10 +106,10 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                     onClick={() => onSelect(t.id)}
                     onKeyDown={(e) => e.key === "Enter" && onSelect(t.id)}
                     className={[
-                      "group flex cursor-pointer items-start justify-between rounded-lg border px-2 py-2",
+                      "group flex cursor-pointer items-start justify-between rounded-lg px-2 py-2 shadow-hairline",
                       active
-                        ? "border-neutral-800 bg-neutral-900"
-                        : "border-neutral-900 bg-neutral-900/40 hover:bg-neutral-900/60",
+                        ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-text shadow-glow"
+                        : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text hover:shadow-glow",
                     ].join(" ")}
                   >
                     <div className="min-w-0 pr-2">
@@ -124,7 +124,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                           e.stopPropagation();
                           toggleStar(t.id);
                         }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
                       >
                         <Star className={`h-3.5 w-3.5 ${t.starred ? "text-[var(--accent)]" : "text-neutral-400"}`} />
                       </button>
@@ -135,7 +135,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                           e.stopPropagation();
                           toggleArchive(t.id);
                         }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
                       >
                         <Archive className={`h-3.5 w-3.5 ${t.archived ? "text-[var(--accent)]" : "text-neutral-400"}`} />
                       </button>
@@ -146,7 +146,7 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                           e.stopPropagation();
                           remove(t.id);
                         }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
                       >
                         <Trash2 className="h-3.5 w-3.5 text-neutral-400" />
                       </button>
@@ -164,9 +164,9 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
 
 function btn(active: boolean) {
   return [
-    "rounded-md border px-2 py-1",
+    "rounded-md px-2 py-1",
     active
-      ? "border-neutral-800 bg-neutral-900 text-neutral-200"
-      : "border-neutral-900 bg-neutral-900/50 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200",
+      ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text shadow-glow"
+      : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text hover:shadow-glow shadow-hairline",
   ].join(" ");
 }

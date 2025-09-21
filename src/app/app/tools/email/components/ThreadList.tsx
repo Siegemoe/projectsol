@@ -28,7 +28,7 @@ export default function ThreadList({
         <Fragment key={section.title}>
           <SectionHeader title={section.title} />
 
-          <div className="divide-y divide-neutral-900 rounded-xl border border-neutral-900 bg-neutral-950/60">
+          <div className="rounded-xl panel">
             {section.threads
               .filter((t) => !t.pinned) // hide the special pinned-group placeholder row from main list
               .map((thread) => (
@@ -63,10 +63,10 @@ function SectionHeader({ title }: { title: string }) {
 
 function PinnedRow({ labels }: { labels: string[] }) {
   return (
-    <div className="mb-2 overflow-hidden rounded-xl border border-neutral-900 bg-neutral-950">
+    <div className="mb-2 overflow-hidden rounded-xl panel">
       <div className="flex flex-wrap items-center gap-2 px-3 py-2">
         <div
-          className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900"
+          className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] shadow-hairline"
           aria-hidden="true"
         >
           <Star className="h-3 w-3 text-yellow-400" />
@@ -74,7 +74,7 @@ function PinnedRow({ labels }: { labels: string[] }) {
         {labels.map((label) => (
           <span
             key={label}
-            className="inline-flex items-center rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-neutral-300"
+            className="inline-flex items-center rounded-full bg-[color:var(--bg-elev-2)] px-2 py-1 text-[11px] text-text-dim shadow-hairline"
           >
             {label}
           </span>
@@ -115,12 +115,12 @@ function ThreadRow({
           onClick();
         }
       }}      className={[
-        "group flex w-full items-start gap-3 px-3 py-2 text-left transition",
-        selected ? "bg-white/10" : "hover:bg-neutral-900/60",
+        "group flex w-full items-start gap-3 px-3 py-2 text-left transition rounded-lg",
+        selected ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-text shadow-glow" : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text hover:shadow-glow shadow-hairline",
       ].join(" ")}
     >
       {/* caret / collapse indicator (decorative) */}
-      <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-900 text-neutral-500">
+      <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-neutral-500 shadow-hairline">
         <ChevronRight className="h-3.5 w-3.5" />
       </div>
 
@@ -129,7 +129,7 @@ function ThreadRow({
         {thread.unread ? (
           <CircleDot className="h-3.5 w-3.5 text-blue-400" />
         ) : (
-          <span className="h-1.5 w-1.5 rounded-full bg-neutral-700" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[rgba(255,255,255,0.25)]" />
         )}
       </div>
 
@@ -142,7 +142,7 @@ function ThreadRow({
               {thread.labels.slice(0, 3).map((l) => (
                 <span
                   key={l}
-                  className="truncate rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] text-neutral-300"
+                  className="truncate rounded-full bg-[color:var(--bg-elev-2)] px-2 py-0.5 text-[10px] text-text-dim shadow-hairline"
                 >
                   {l}
                 </span>
@@ -165,7 +165,7 @@ function ThreadRow({
               e.stopPropagation();
               onToggleUnread();
             }}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
           >
             {thread.unread ? (
               <CircleDot className="h-3.5 w-3.5 text-blue-400" />
@@ -180,7 +180,7 @@ function ThreadRow({
               e.stopPropagation();
               onTogglePinned();
             }}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-900 bg-neutral-900 hover:bg-neutral-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:shadow-glow"
           >
             {thread.pinned ? (
               <Star className="h-3.5 w-3.5 text-yellow-400" />
