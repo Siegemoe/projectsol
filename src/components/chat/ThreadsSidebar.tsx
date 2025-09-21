@@ -54,19 +54,20 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   }
 
   return (
-    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] ring-1 ring-[color:var(--accent)]/30 z-10">
+    <aside className="panel rounded-none h-full min-w-[18rem] w-72 shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] ring-1 ring-[color:var(--accent)]/30 z-30">
       <div className="flex items-center justify-between px-3 py-2">
-        <div className="text-sm font-medium text-neutral-300">Threads</div>
+        <div className="text-sm font-medium text-neutral-200">Threads</div>
         <button
           type="button"
           title="New chat"
           onClick={addThread}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
+          className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-sm text-text shadow-hairline"
         >
           <Plus className="h-4 w-4 text-neutral-300" />
+          <span>New</span>
         </button>
       </div>
-
+      <div className="px-3 pb-1 text-xs text-[color:var(--accent)]/80">debug: {list.length} threads</div>
       <div className="flex items-center gap-2 p-2 text-xs">
         <button
           className={btn(filter === "all")}
@@ -113,8 +114,8 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                     ].join(" ")}
                   >
                     <div className="min-w-0 pr-2">
-                      <div className="truncate text-sm text-neutral-200">{t.title}</div>
-                      <div className="truncate text-xs text-neutral-500">{t.lastMessage}</div>
+                      <div className="truncate text-sm text-text">{t.title}</div>
+                      <div className="truncate text-xs text-text-dim">{t.lastMessage}</div>
                     </div>
                     <div className="mt-1 flex items-center gap-1">
                       <button
