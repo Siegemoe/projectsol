@@ -68,6 +68,8 @@ export default function SolChat({
   const [mounted, setMounted] = useState(false);
   const [pinnedToBottom, setPinnedToBottom] = useState(true);
   const autoStickNextRef = useRef(false);
+  const composerRef = useRef<HTMLDivElement | null>(null);
+  const [composerHeight, setComposerHeight] = useState(0);
 
   useEffect(() => setMounted(true), []);
 
@@ -187,7 +189,38 @@ export default function SolChat({
       window.removeEventListener("scroll", measure as any);
     };
   }, []);
-
+  
+  // Measure composer height to offset "Jump to latest" button
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+  
+    const measure = () => {
+      const h = el.offsetHeight || el.getBoundingClientRect().height;
+      setComposerHeight(Math.round(h));
+    };
+  
+    measure();
+  
+    let cleanup: (() => void) | undefined;
+  
+    if (typeof window !== "undefined" && "ResizeObserver" in window) {
+      const ro = new ResizeObserver(() => measure());
+      ro.observe(el);
+      cleanup = () => ro.disconnect();
+    } else {
+      // Fallback: poll if ResizeObserver is unavailable
+      const id = setInterval(measure, 250);
+      cleanup = () => clearInterval(id);
+    }
+  
+    window.addEventListener("resize", measure, { passive: true } as any);
+    return () => {
+      window.removeEventListener("resize", measure as any);
+      if (cleanup) cleanup();
+    };
+  }, []);
+  
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -351,7 +384,7 @@ export default function SolChat({
       </div>
 
       {/* Composer at bottom (not sticky, just a regular block) */}
-      <div className="relative shrink-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 border-t border-[color:var(--border-dim)]">
+      <div ref={composerRef} className="relative shrink-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 border-t border-[color:var(--border-dim)]">
         {/* Fade gradient above composer */}
         <div className="pointer-events-none absolute -top-12 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
         <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
@@ -403,7 +436,7 @@ export default function SolChat({
 
       {/* Jump to latest button */}
       {uiVariant === "chatApp" && !pinnedToBottom && (
-        <div className="absolute bottom-24 right-8 z-50">
+        <div className="absolute right-8 z-50" style={{ bottom: Math.max(12, composerHeight + 12) }}>
           <button
             type="button"
             onClick={() => {
