@@ -17,7 +17,7 @@ export default async function AppChatPage() {
   }
 
   return (
-    <div className="h-full min-h-0 flex flex-col">
+    <div className="-mx-2 sm:-mx-4 h-full min-h-0 flex flex-col">
       <Chat2Pane />
     </div>
   );

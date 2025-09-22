@@ -342,7 +342,7 @@ export default function SolChat({
           const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 48;
           setPinnedToBottom(atBottom);
         }}
-        className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 chat-scroll"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-auto touch-pan-y pl-3 pr-8 md:pr-14 pt-4 chat-scroll"
         style={{ paddingBottom: scrollPad }}
       >
         <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
@@ -468,6 +468,23 @@ export default function SolChat({
                 Jump to latest
               </button>
             </div>,
+            document.body
+          )
+        : null}
+
+      {/* Bottom fade overlay under composer */}
+      {mounted
+        ? createPortal(
+            <div
+              className="pointer-events-none z-40 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)] opacity-95"
+              style={{
+                position: "fixed",
+                left: composerBox.left,
+                width: composerBox.width,
+                bottom: railOffset.bottom,
+                height: 64,
+              }}
+            />,
             document.body
           )
         : null}
