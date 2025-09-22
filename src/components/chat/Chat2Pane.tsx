@@ -24,7 +24,7 @@ export default function Chat2Pane() {
       />
 
       {/* Chat pane - fills remaining space */}
-      <div className="min-w-0 bg-bg-1 h-full flex flex-col overflow-hidden">
+      <div className="min-w-0 bg-transparent h-full flex flex-col overflow-hidden">
         <SolChat title="Sol" apiPath="/api/sol-chat" threadId={activeId ?? undefined} />
       </div>
     </div>
