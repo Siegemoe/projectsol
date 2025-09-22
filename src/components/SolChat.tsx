@@ -159,11 +159,11 @@ export default function SolChat({
   }
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-white">
       {/* Messages area */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 chat-scroll"
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-3">
           {messages.map((m, idx) => {

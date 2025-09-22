@@ -56,6 +56,9 @@ export function useDragResize(opts: UseDragResizeOptions) {
     dragRef.current = { startX: clientX, startWidth: width };
 
     moveListenerRef.current = (ev: MouseEvent | TouchEvent) => {
+      // Only prevent default for drag events, not all mouse/touch events
+      if (!dragRef.current) return;
+      
       const x =
         ev instanceof TouchEvent
           ? ev.touches[0]?.clientX ?? dragRef.current!.startX
@@ -67,7 +70,11 @@ export function useDragResize(opts: UseDragResizeOptions) {
         : clamp(dragRef.current!.startWidth + dx, min, max);
 
       setWidth(next);
-      (ev as any).preventDefault?.();
+      
+      // Only prevent default during active resize
+      if (dragRef.current) {
+        (ev as any).preventDefault?.();
+      }
     };
 
     upListenerRef.current = () => {
