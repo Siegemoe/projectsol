@@ -333,7 +333,19 @@ export default function SolChat({
   };
 
   return (
-    <div ref={rootRef} className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
+    <div
+      ref={rootRef}
+      className="relative flex h-full min-h-0 w-full flex-col overflow-hidden"
+      onWheelCapture={(e: React.WheelEvent<HTMLDivElement>) => {
+        const sc = scrollRef.current;
+        if (!sc) return;
+        // If wheel happens outside the scroller, forward it to the scroller
+        if (!sc.contains(e.target as Node)) {
+          sc.scrollBy({ top: e.deltaY, behavior: "auto" });
+          e.preventDefault();
+        }
+      }}
+    >
       {/* Scrollable messages area (extra bottom padding so fixed composer won't overlap) */}
       <div
         ref={scrollRef}
@@ -509,8 +521,8 @@ export default function SolChat({
       {emailToolEnabled && (
         <div
           className={[
-            "pointer-events-auto absolute inset-0 z-20 bg-bg transition-transform duration-300",
-            emailOpen ? "translate-x-0 ease-out" : "-translate-x-full ease-in",
+            "absolute inset-0 z-20 bg-bg transition-transform duration-300",
+            emailOpen ? "pointer-events-auto translate-x-0 ease-out" : "pointer-events-none -translate-x-full ease-in",
           ].join(" ")}
           aria-hidden={!emailOpen}
         >
