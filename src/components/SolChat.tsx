@@ -198,7 +198,7 @@ export default function SolChat({
       </div>
 
       {/* Input area */}
-      <div className="border-t bg-white p-4">
+      <div className="border-t bg-white p-4 flex-shrink-0">
         <form onSubmit={sendMessage} className="mx-auto max-w-3xl">
           <div className="relative flex items-end gap-2">
             <textarea
