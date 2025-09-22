@@ -391,68 +391,57 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Composer rendered via portal to hug viewport bottom and align with chat column */}
-      {mounted
-        ? createPortal(
-            <div
-              ref={composerRef}
-              className="bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 z-50"
-              style={{
-                position: "fixed",
-                left: composerBox.left,
-                width: composerBox.width,
-                bottom: 0,
-              }}
+      {/* Sticky composer at bottom within the chat column (no portal) */}
+      <div className="sticky bottom-0 left-0 right-0 z-50 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
+        {/* Fade gradient under composer; does not intercept pointer events */}
+        <div className="pointer-events-none absolute -top-16 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
+        <div ref={composerRef} />
+        <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
+          <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              rows={1}
+              placeholder={`Ask ${title}`}
+              className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
+            />
+            <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
+              <button
+                type="button"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
+                aria-label="Add"
+              >
+                +
+              </button>
+              <span>Tools</span>
+              {emailToolEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setEmailOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
+                  aria-label="Open Email"
+                  title="Email"
+                >
+                  Email
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={loading || input.trim().length === 0}
+              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
+              aria-label="Send"
             >
-              <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
-                <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    rows={1}
-                    placeholder={`Ask ${title}`}
-                    className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
-                  />
-                  <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
-                    <button
-                      type="button"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                      aria-label="Add"
-                    >
-                      +
-                    </button>
-                    <span>Tools</span>
-                    {emailToolEnabled && (
-                      <button
-                        type="button"
-                        onClick={() => setEmailOpen(true)}
-                        className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
-                        aria-label="Open Email"
-                        title="Email"
-                      >
-                        Email
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading || input.trim().length === 0}
-                    className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
-                    aria-label="Send"
-                  >
-                    {"\u003e"}
-                  </button>
-                </div>
-              </form>
-              <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
-                Sol can make mistakes, fact check her.
-              </div>
-            </div>,
-            document.body
-          )
-        : null}
+              {"\u003e"}
+            </button>
+          </div>
+        </form>
+        <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
+          Sol can make mistakes, fact check her.
+        </div>
+      </div>
 
       {/* Jump to latest button (fixed, aligned to chat column) */}
       {mounted && uiVariant === "chatApp" && !pinnedToBottom
@@ -483,22 +472,7 @@ export default function SolChat({
           )
         : null}
 
-      {/* Bottom fade overlay under composer */}
-      {mounted
-        ? createPortal(
-            <div
-              className="pointer-events-none z-40 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)] opacity-95"
-              style={{
-                position: "fixed",
-                left: composerBox.left,
-                width: composerBox.width,
-                bottom: railOffset.bottom,
-                height: 64,
-              }}
-            />,
-            document.body
-          )
-        : null}
+      {/* Bottom fade handled by sticky composer block; portal not required */}
 
       {/* Right-side timeline rail rendered in a portal */}
       {mounted
