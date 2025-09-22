@@ -58,20 +58,13 @@ export default function SolChat({
   const { startStream } = useStreamedChat(apiPath);
   const [timelinePage, setTimelinePage] = useState(0);
 
-  // Positioning for right-side rail and composer portal alignment
+  // Positioning for right-side rail
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [railOffset, setRailOffset] = useState<{ top: number; right: number; bottom: number }>({
     top: 72,
     right: 16,
-    bottom: 96,
+    bottom: 140,
   });
-  const [composerBox, setComposerBox] = useState<{ left: number; width: number; bottom: number }>({
-    left: 0,
-    width: 0,
-    bottom: 0,
-  });
-  const composerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollPad, setScrollPad] = useState(128);
   const [mounted, setMounted] = useState(false);
   const [pinnedToBottom, setPinnedToBottom] = useState(true);
   const autoStickNextRef = useRef(false);
@@ -174,26 +167,17 @@ export default function SolChat({
     } catch {}
   }, [emailOpen, emailToolEnabled]);
 
-  // Measure chat column to align rail and composer portal
+  // Measure chat column to align rail
   useEffect(() => {
     function measure() {
       const el = rootRef.current;
       let top = 72;
-      let right = 16;
-
+      
       if (el) {
         const rect = el.getBoundingClientRect();
         top = Math.max(56, Math.round(rect.top) + 8);
-        setComposerBox({
-          left: Math.round(rect.left),
-          width: Math.round(rect.width),
-          bottom: 0,
-        });
       }
-      right = 12;
-      const h = composerRef.current ? composerRef.current.offsetHeight : 96;
-      setScrollPad(h + 8);
-      setRailOffset({ top, right, bottom: h + 8 });
+      setRailOffset({ top, right: 12, bottom: 140 });
     }
     measure();
     window.addEventListener("resize", measure);
@@ -203,21 +187,6 @@ export default function SolChat({
       window.removeEventListener("scroll", measure as any);
     };
   }, []);
-
-  // Observe composer height changes to adjust bottom padding and rail offset
-  useEffect(() => {
-    if (!mounted) return;
-    const el = composerRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-
-    const ro = new ResizeObserver(() => {
-      const h = el.offsetHeight;
-      setScrollPad(h + 8);
-      setRailOffset((prev) => ({ ...prev, bottom: h + 8 }));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [mounted]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -335,17 +304,8 @@ export default function SolChat({
     <div
       ref={rootRef}
       className="relative flex h-full min-h-0 w-full flex-col overflow-hidden"
-      onWheelCapture={(e: React.WheelEvent<HTMLDivElement>) => {
-        const sc = scrollRef.current;
-        if (!sc) return;
-        // If wheel happens outside the scroller, forward it to the scroller
-        if (!sc.contains(e.target as Node)) {
-          sc.scrollBy({ top: e.deltaY, behavior: "auto" });
-          e.preventDefault();
-        }
-      }}
     >
-      {/* Scrollable messages area (extra bottom padding so fixed composer won't overlap) */}
+      {/* Scrollable messages area */}
       <div
         ref={scrollRef}
         onScroll={(e) => {
@@ -353,8 +313,7 @@ export default function SolChat({
           const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 4;
           setPinnedToBottom(atBottom);
         }}
-        className="flex-1 min-h-0 overflow-y-scroll overscroll-contain touch-pan-y pl-3 pr-8 md:pr-14 pt-4 chat-scroll [scrollbar-gutter:stable]"
-        style={{ paddingBottom: scrollPad }}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain pl-3 pr-8 md:pr-14 pt-4 pb-4 [scrollbar-gutter:stable]"
       >
         <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
           {messages.map((m, idx) => {
@@ -391,11 +350,10 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Sticky composer at bottom within the chat column (no portal) */}
-      <div className="sticky bottom-0 left-0 right-0 z-50 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125">
-        {/* Fade gradient under composer; does not intercept pointer events */}
-        <div className="pointer-events-none absolute -top-16 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
-        <div ref={composerRef} />
+      {/* Composer at bottom (not sticky, just a regular block) */}
+      <div className="relative shrink-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 border-t border-[color:var(--border-dim)]">
+        {/* Fade gradient above composer */}
+        <div className="pointer-events-none absolute -top-12 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
         <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
           <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
             <textarea
@@ -443,36 +401,24 @@ export default function SolChat({
         </div>
       </div>
 
-      {/* Jump to latest button (fixed, aligned to chat column) */}
-      {mounted && uiVariant === "chatApp" && !pinnedToBottom
-        ? createPortal(
-            <div
-              className="z-50"
-              style={{
-                position: "fixed",
-                left: composerBox.left + composerBox.width - 160,
-                bottom: (railOffset.bottom || 88) + 56,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  const sc = scrollRef.current;
-                  if (sc) {
-                    sc.scrollTop = sc.scrollHeight;
-                    setPinnedToBottom(true);
-                  }
-                }}
-                className="rounded-full px-3 py-1.5 text-xs bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:bg-[color:var(--bg)] transition"
-              >
-                Jump to latest
-              </button>
-            </div>,
-            document.body
-          )
-        : null}
-
-      {/* Bottom fade handled by sticky composer block; portal not required */}
+      {/* Jump to latest button */}
+      {uiVariant === "chatApp" && !pinnedToBottom && (
+        <div className="absolute bottom-24 right-8 z-50">
+          <button
+            type="button"
+            onClick={() => {
+              const sc = scrollRef.current;
+              if (sc) {
+                sc.scrollTop = sc.scrollHeight;
+                setPinnedToBottom(true);
+              }
+            }}
+            className="rounded-full px-3 py-1.5 text-xs bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:bg-[color:var(--bg)] transition"
+          >
+            Jump to latest
+          </button>
+        </div>
+      )}
 
       {/* Right-side timeline rail rendered in a portal */}
       {mounted
