@@ -31,6 +31,7 @@ interface SolChatProps {
   title?: string;
   apiPath?: string;
   emailToolEnabled?: boolean;
+  uiVariant?: "chatApp" | "default";
   threadId?: string;
 }
 
@@ -38,6 +39,7 @@ export default function SolChat({
   title = "Sol",
   apiPath = "/api/sol-chat",
   emailToolEnabled = true,
+  uiVariant = "default",
   threadId,
 }: SolChatProps) {
   const [messages, setMessages] = useState<Message[]>([
@@ -71,15 +73,25 @@ export default function SolChat({
   const composerRef = useRef<HTMLDivElement | null>(null);
   const [scrollPad, setScrollPad] = useState(128);
   const [mounted, setMounted] = useState(false);
+  const [pinnedToBottom, setPinnedToBottom] = useState(true);
+  const autoStickNextRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
 
-  // Keep messages scrolled to bottom when they change
+  // Keep messages scrolled to bottom when they change (only if user is pinned or after sending)
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const sc = scrollRef.current;
+    if (!sc) return;
+
+    const nearBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 48;
+    const shouldStick = autoStickNextRef.current || pinnedToBottom || nearBottom;
+
+    if (shouldStick) {
+      sc.scrollTop = sc.scrollHeight;
+      autoStickNextRef.current = false;
+      setPinnedToBottom(true);
     }
-  }, [messages, loading]);
+  }, [messages, loading, pinnedToBottom]);
 
   // Auto resize textarea up to 5 lines
   useEffect(() => {
@@ -169,7 +181,6 @@ export default function SolChat({
       const el = rootRef.current;
       let top = 72;
       let right = 16;
-      let bottom = 96;
 
       if (el) {
         const rect = el.getBoundingClientRect();
@@ -181,10 +192,9 @@ export default function SolChat({
         });
       }
       right = 12;
-      bottom = 88;
       const h = composerRef.current ? composerRef.current.offsetHeight : 96;
       setScrollPad(h + 8);
-      setRailOffset({ top, right, bottom });
+      setRailOffset({ top, right, bottom: h + 8 });
     }
     measure();
     window.addEventListener("resize", measure);
@@ -194,6 +204,21 @@ export default function SolChat({
       window.removeEventListener("scroll", measure as any);
     };
   }, []);
+
+  // Observe composer height changes to adjust bottom padding and rail offset
+  useEffect(() => {
+    if (!mounted) return;
+    const el = composerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight;
+      setScrollPad(h + 8);
+      setRailOffset((prev) => ({ ...prev, bottom: h + 8 }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [mounted]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -213,6 +238,7 @@ export default function SolChat({
     const temperature = 0.3;
     const system: string | undefined = undefined;
 
+    autoStickNextRef.current = true;
     const nextMessages = [...messages, { role: "user", content: trimmed } as Message];
     setMessages(nextMessages);
     if (threadId) {
@@ -311,10 +337,15 @@ export default function SolChat({
       {/* Scrollable messages area (extra bottom padding so fixed composer won't overlap) */}
       <div
         ref={scrollRef}
+        onScroll={(e) => {
+          const sc = e.currentTarget;
+          const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 48;
+          setPinnedToBottom(atBottom);
+        }}
         className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 chat-scroll"
         style={{ paddingBottom: scrollPad }}
       >
-        <div className="mx-auto flex max-w-4xl flex-col gap-3">
+        <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";
             return (
@@ -362,7 +393,7 @@ export default function SolChat({
                 bottom: 0,
               }}
             >
-              <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
+              <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
                 <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
                   <textarea
                     ref={inputRef}
@@ -407,6 +438,35 @@ export default function SolChat({
               <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
                 Sol can make mistakes, fact check her.
               </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {/* Jump to latest button (fixed, aligned to chat column) */}
+      {mounted && uiVariant === "chatApp" && !pinnedToBottom
+        ? createPortal(
+            <div
+              className="z-50"
+              style={{
+                position: "fixed",
+                left: composerBox.left + composerBox.width - 160,
+                bottom: (railOffset.bottom || 88) + 56,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  const sc = scrollRef.current;
+                  if (sc) {
+                    sc.scrollTop = sc.scrollHeight;
+                    setPinnedToBottom(true);
+                  }
+                }}
+                className="rounded-full px-3 py-1.5 text-xs bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:bg-[color:var(--bg)] transition"
+              >
+                Jump to latest
+              </button>
             </div>,
             document.body
           )

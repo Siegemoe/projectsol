@@ -13,7 +13,7 @@ export default function Chat2Pane() {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
-    <div className="grid h-full min-h-0 w-full bg-bg min-w-[42rem] sm:min-w-[48rem] overflow-hidden" style={{ gridTemplateColumns: "22rem 1px minmax(0,1fr)" }}>
+    <div className="grid h-full min-h-0 w-full bg-bg overflow-hidden" style={{ gridTemplateColumns: "18rem 1px minmax(0,1fr)" }}>
       {/* Left sidebar - fixed width column */}
       <ThreadsSidebar activeId={activeId} onSelect={setActiveId} />
 
@@ -25,7 +25,7 @@ export default function Chat2Pane() {
 
       {/* Chat pane - fills remaining space */}
       <div className="min-w-0 bg-transparent h-full flex flex-col overflow-hidden">
-        <SolChat title="Sol" apiPath="/api/sol-chat" threadId={activeId ?? undefined} />
+        <SolChat title="Sol" apiPath="/api/sol-chat" uiVariant="chatApp" threadId={activeId ?? undefined} />
       </div>
     </div>
   );
