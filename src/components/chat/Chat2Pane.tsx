@@ -5,27 +5,21 @@ import ThreadsSidebar from "./ThreadsSidebar";
 import SolChat from "@/components/SolChat";
 
 /**
- * Two-pane chat view:
- * - Left: threads list with basic actions (local state)
+ * Simple two-pane chat view:
+ * - Left: threads list
  * - Right: Sol Chat conversation
  */
 export default function Chat2Pane() {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
-    <div className="grid h-full min-h-0 w-full bg-bg overflow-hidden pl-3" style={{ gridTemplateColumns: "18rem 1px minmax(0,1fr)" }}>
-      {/* Left sidebar - fixed width column */}
+    <div className="flex h-full w-full bg-white">
+      {/* Left sidebar */}
       <ThreadsSidebar activeId={activeId} onSelect={setActiveId} />
 
-      {/* Hairline separator column */}
-      <div
-        className="bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.06),transparent)]"
-        aria-hidden="true"
-      />
-
-      {/* Chat pane - fills remaining space */}
-      <div className="min-w-0 bg-transparent h-full min-h-0 flex flex-col overflow-hidden">
-        <SolChat title="Sol" apiPath="/api/sol-chat" uiVariant="chatApp" threadId={activeId ?? undefined} />
+      {/* Chat pane */}
+      <div className="flex-1 min-w-0 h-full">
+        <SolChat title="Sol" apiPath="/api/sol-chat" threadId={activeId ?? undefined} />
       </div>
     </div>
   );

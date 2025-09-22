@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-import { createPortal } from "react-dom";
 import { useStreamedChat } from "@/hooks/useStreamedChat";
-import { coerceFolder } from "@/lib/sanitize";
-import TimelineRail, { type TimelineItem } from "@/components/chat/TimelineRail";
 import {
   getMessages,
   saveMessages,
@@ -15,14 +11,8 @@ import {
   type StoredMessage,
 } from "@/hooks/useChatStore";
 
-const LazyEmailWindow = dynamic(
-  () => import("@/app/app/tools/email/components/EmailWindow"),
-  { ssr: false }
-);
-
 type Role = "user" | "assistant";
 type Message = { role: Role; content: string };
-type Folder = "inbox" | "pinned" | "drafts" | "sent" | "trash";
 
 const INITIAL_GREETING =
   "Hey — I'm Sol. Ask me anything. I use a memory-first approach to help with real work.";
@@ -30,16 +20,12 @@ const INITIAL_GREETING =
 interface SolChatProps {
   title?: string;
   apiPath?: string;
-  emailToolEnabled?: boolean;
-  uiVariant?: "chatApp" | "default";
   threadId?: string;
 }
 
 export default function SolChat({
   title = "Sol",
   apiPath = "/api/sol-chat",
-  emailToolEnabled = true,
-  uiVariant = "default",
   threadId,
 }: SolChatProps) {
   const [messages, setMessages] = useState<Message[]>([
@@ -48,60 +34,19 @@ export default function SolChat({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Email overlay state (used only if emailToolEnabled)
-  const [emailOpen, setEmailOpen] = useState(false);
-  const [emailFolder, setEmailFolder] = useState<Folder>("inbox");
-
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const messageRefs = useRef<Array<HTMLDivElement | null>>([]);
   const { startStream } = useStreamedChat(apiPath);
-  const [timelinePage, setTimelinePage] = useState(0);
 
-  // Positioning for right-side rail
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const [railOffset, setRailOffset] = useState<{ top: number; right: number; bottom: number }>({
-    top: 72,
-    right: 16,
-    bottom: 140,
-  });
-  const [mounted, setMounted] = useState(false);
-  const [pinnedToBottom, setPinnedToBottom] = useState(true);
-  const autoStickNextRef = useRef(false);
-  const composerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollPad, setScrollPad] = useState(140);
-  const [composerHeight, setComposerHeight] = useState(0);
-
-  useEffect(() => setMounted(true), []);
-
-  // Keep messages scrolled to bottom when they change (only if user is pinned or after sending)
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     const sc = scrollRef.current;
-    if (!sc) return;
-
-    const shouldStick = autoStickNextRef.current || pinnedToBottom;
-
-    if (shouldStick) {
+    if (sc) {
       sc.scrollTop = sc.scrollHeight;
-      autoStickNextRef.current = false;
-      setPinnedToBottom(true);
     }
-  }, [messages, loading, pinnedToBottom]);
+  }, [messages, loading]);
 
-  // Auto resize textarea up to 5 lines
-  useEffect(() => {
-    const ta = inputRef.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    const lineHeight = 20; // ~leading-5 for text-sm
-    const maxRows = 5;
-    const maxHeight = lineHeight * maxRows;
-    const newHeight = Math.min(ta.scrollHeight, maxHeight);
-    ta.style.height = `${newHeight}px`;
-    ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
-  }, [input]);
-
-  // Load messages for a given thread (persisted), or seed a greeting if empty
+  // Load messages for a given thread
   useEffect(() => {
     if (!threadId) return;
     const stored = getMessages(threadId);
@@ -117,122 +62,7 @@ export default function SolChat({
       saveMessages(threadId, [seed]);
       setMessages([{ role: "assistant", content: INITIAL_GREETING }]);
     }
-    setTimelinePage(Math.max(0, Math.ceil((stored.length || 1) / 14) - 1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]);
-
-  // Listen for global "sol:open-email" events dispatched by the AppSidebar
-  useEffect(() => {
-    if (!emailToolEnabled) return;
-    const handler = (e: Event) => {
-      const anyEvt = e as CustomEvent<{ open?: boolean; folder?: Folder }>;
-      const detail = anyEvt?.detail || {};
-      if (detail.folder)
-        setEmailFolder(coerceFolder(typeof detail.folder === "string" ? detail.folder : null, "inbox"));
-      if (detail.open === false) setEmailOpen(false);
-      else setEmailOpen(true);
-    };
-    window.addEventListener("sol:open-email", handler as EventListener);
-    return () => window.removeEventListener("sol:open-email", handler as EventListener);
-  }, [emailToolEnabled]);
-
-  // Support deep-linking via query params: ?email=1&folder=inbox
-  useEffect(() => {
-    if (!emailToolEnabled || typeof window === "undefined") return;
-    try {
-      const url = new URL(window.location.href);
-      const shouldOpen = url.searchParams.get("email");
-      if (shouldOpen === "1") {
-        const rawFolder = (url.searchParams.get("folder") || "").toLowerCase();
-        const allowedFolders: Folder[] = ["inbox", "pinned", "drafts", "sent", "trash"];
-        if (rawFolder && allowedFolders.includes(rawFolder as Folder)) {
-          setEmailFolder(rawFolder as Folder);
-        }
-        setEmailOpen(true);
-        const params = new URLSearchParams(url.searchParams);
-        params.delete("email");
-        params.delete("folder");
-        const next = url.pathname + (params.toString() ? `?${params.toString()}` : "");
-        window.history.replaceState({}, "", next);
-      }
-    } catch (err) {
-      console.error("Failed to parse deep-linking email parameters:", err);
-    }
-  }, [emailToolEnabled]);
-
-  // Broadcast overlay open/close state
-  useEffect(() => {
-    if (!emailToolEnabled) return;
-    try {
-      window.dispatchEvent(
-        new CustomEvent("sol:email-open-changed", { detail: { open: emailOpen } } as any)
-      );
-    } catch {}
-  }, [emailOpen, emailToolEnabled]);
-
-  // Measure chat column to align rail
-  useEffect(() => {
-    function measure() {
-      const el = rootRef.current;
-      let top = 72;
-      
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        top = Math.max(56, Math.round(rect.top) + 8);
-      }
-      setRailOffset({ top, right: 12, bottom: 140 });
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, { passive: true } as any);
-    return () => {
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure as any);
-    };
-  }, []);
-  
-  // Measure composer height to offset "Jump to latest" button
-  useEffect(() => {
-    const el = composerRef.current;
-    if (!el) return;
-  
-    const measure = () => {
-      const h = el.offsetHeight || el.getBoundingClientRect().height;
-      setComposerHeight(Math.round(h));
-    };
-  
-    measure();
-  
-    let cleanup: (() => void) | undefined;
-  
-    if (typeof window !== "undefined" && "ResizeObserver" in window) {
-      const ro = new ResizeObserver(() => measure());
-      ro.observe(el);
-      cleanup = () => ro.disconnect();
-    } else {
-      // Fallback: poll if ResizeObserver is unavailable
-      const id = setInterval(measure, 250);
-      cleanup = () => clearInterval(id);
-    }
-  
-    window.addEventListener("resize", measure, { passive: true } as any);
-    return () => {
-      window.removeEventListener("resize", measure as any);
-      if (cleanup) cleanup();
-    };
-  }, []);
-
-  // Observe composer height to keep bottom padding in sync with its size
-  useEffect(() => {
-    const el = composerRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
-      const h = el.offsetHeight || 0;
-      setScrollPad(h + 8);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -250,11 +80,10 @@ export default function SolChat({
       (typeof window !== "undefined" && localStorage.getItem("app:model")) ||
       "deepseek/deepseek-chat";
     const temperature = 0.3;
-    const system: string | undefined = undefined;
 
-    autoStickNextRef.current = true;
     const nextMessages = [...messages, { role: "user", content: trimmed } as Message];
     setMessages(nextMessages);
+    
     if (threadId) {
       const userStored: StoredMessage = {
         id: genId(),
@@ -295,7 +124,6 @@ export default function SolChat({
         messages: nextMessages,
         model,
         temperature,
-        system,
         onOpen: () => {
           setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
           if (threadId) {
@@ -330,80 +158,49 @@ export default function SolChat({
     }
   }
 
-  // Utilities for timeline rail
-  function previewSnippet(text: string, maxWords = 10) {
-    const parts = (text || "").trim().split(/\s+/);
-    const s = parts.slice(0, maxWords).join(" ");
-    return parts.length > maxWords ? `${s}…` : s;
-  }
-  const timelineItems: TimelineItem[] = messages.map((m, idx) => ({
-    index: idx,
-    role: m.role,
-    preview: `${m.role === "user" ? "You" : title}: ${previewSnippet(m.content)}`,
-  }));
-  const jumpTo = (i: number) => {
-    const node = messageRefs.current[i];
-    if (node) node.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
   return (
-    <div
-      ref={rootRef}
-      className="relative flex h-full min-h-0 w-full flex-col overflow-hidden"
-    >
-      {/* Scrollable messages area */}
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
+      {/* Messages area */}
       <div
         ref={scrollRef}
-        onScroll={(e) => {
-          const sc = e.currentTarget;
-          const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 4;
-          setPinnedToBottom(atBottom);
-        }}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain pl-3 pr-8 md:pr-14 pt-4 [scrollbar-gutter:stable]"
-        style={{ paddingBottom: scrollPad }}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
       >
-        <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3">
           {messages.map((m, idx) => {
             const isUser = m.role === "user";
             return (
               <div
                 key={idx}
-                ref={(el) => {
-                  messageRefs.current[idx] = el;
-                }}
                 className={`flex ${isUser ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={[
-                    "max-w-[90%] whitespace-pre-wrap text-[13px] leading-5",
+                    "max-w-[90%] whitespace-pre-wrap text-sm leading-relaxed rounded-2xl px-4 py-2",
                     isUser
-                      ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text"
-                      : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text",
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-900",
                   ].join(" ")}
                 >
                   {m.content}
-        </div>
-      </div>
+                </div>
+              </div>
             );
           })}
 
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl px-3 py-2 text-sm text-text bg-[color:var(--bg-elev-2)]">
+              <div className="rounded-2xl px-4 py-2 text-sm text-gray-600 bg-gray-100">
                 Thinking…
               </div>
             </div>
           )}
         </div>
-        <div className="pointer-events-none sticky bottom-0 h-12 -mb-12 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
       </div>
 
-      {/* Composer at bottom (not sticky, just a regular block) */}
-      <div ref={composerRef} className="relative shrink-0 bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 border-t border-[color:var(--border-dim)]">
-        {/* Fade gradient above composer */}
-        <div className="pointer-events-none absolute -top-12 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
-        <form onSubmit={sendMessage} className="mx-auto max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px]">
-          <div className="relative rounded-2xl bg-[color:var(--bg-elev-2)] p-2 pr-12 shadow-hairline">
+      {/* Input area */}
+      <div className="border-t bg-white p-4">
+        <form onSubmit={sendMessage} className="mx-auto max-w-3xl">
+          <div className="relative flex items-end gap-2">
             <textarea
               ref={inputRef}
               value={input}
@@ -411,99 +208,18 @@ export default function SolChat({
               onKeyDown={onKeyDown}
               rows={1}
               placeholder={`Ask ${title}`}
-              className="w-full resize-none bg-transparent text-[13px] leading-5 text-text outline-none placeholder:text-text-dim min-h-[36px] transition-[height] duration-200 ease-out"
+              className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none min-h-[40px] max-h-[120px]"
             />
-            <div className="mt-2 flex items-center gap-3 text-xs text-neutral-400">
-              <button
-                type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                aria-label="Add"
-              >
-                +
-              </button>
-              <span>Tools</span>
-              {emailToolEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setEmailOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-text shadow-hairline"
-                  aria-label="Open Email"
-                  title="Email"
-                >
-                  Email
-                </button>
-              )}
-            </div>
             <button
               type="submit"
               disabled={loading || input.trim().length === 0}
-              className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--bg-elev-2)] text-text shadow-hairline disabled:opacity-60"
-              aria-label="Send"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {"\u003e"}
+              Send
             </button>
           </div>
         </form>
-        <div className="mx-auto max-w-3xl px-1 pt-2 text-[11px] text-text-dim text-center">
-          Sol can make mistakes, fact check her.
-        </div>
       </div>
-
-      {/* Jump to latest button */}
-      {uiVariant === "chatApp" && !pinnedToBottom && (
-        <div className="absolute right-8 z-50" style={{ bottom: Math.max(12, composerHeight + 12) }}>
-          <button
-            type="button"
-            onClick={() => {
-              const sc = scrollRef.current;
-              if (sc) {
-                sc.scrollTop = sc.scrollHeight;
-                setPinnedToBottom(true);
-              }
-            }}
-            className="rounded-full px-3 py-1.5 text-xs bg-[color:var(--bg-elev-2)] text-text shadow-hairline hover:bg-[color:var(--bg)] transition"
-          >
-            Jump to latest
-          </button>
-        </div>
-      )}
-
-      {/* Right-side timeline rail rendered in a portal */}
-      {mounted
-        ? createPortal(
-            <TimelineRail
-              items={timelineItems}
-              page={timelinePage}
-              onPageChange={setTimelinePage}
-              onJumpTo={jumpTo}
-              topOffset={railOffset.top}
-              rightOffset={railOffset.right}
-              bottomOffset={railOffset.bottom}
-            />,
-            document.body
-          )
-        : null}
-
-      {/* Email overlay panel (slides in from the left) */}
-      {emailToolEnabled && (
-        <div
-          className={[
-            "absolute inset-0 z-20 bg-bg transition-transform duration-300",
-            emailOpen ? "pointer-events-auto translate-x-0 ease-out" : "pointer-events-none -translate-x-full ease-in",
-          ].join(" ")}
-          aria-hidden={!emailOpen}
-        >
-          {emailOpen && (
-            <LazyEmailWindow
-              embedded
-              showSidebar={false}
-              folder={emailFolder}
-              onChangeFolder={setEmailFolder}
-              onClose={() => setEmailOpen(false)}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -51,3 +51,62 @@ next-env.d.ts
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# ============================================================================
+# SECURITY: MCP Server Configurations & Sensitive Data
+# ============================================================================
+
+# MCP Server Configurations (contain API keys, tokens, personal paths)
+**/cline_mcp_settings.json
+**/cline_mcp_settings.json.bak*
+**/*mcp*config*
+**/MCP/
+**/.aim/
+**/MemoryBank/
+**/KnowledgeGraph/
+
+# Environment Files & Secrets
+.env
+.env.local
+.env.*.local
+**/*secret*
+**/*token*
+**/*key*
+**/*credential*
+
+# Script Artifacts & Backups
+scripts/**/*.bak*
+scripts/**/*.backup
+scripts/**/temp*
+scripts/**/local*
+scripts/**/actual-*
+
+# Personal/Local Paths & User Data
+**/Users/*/
+**/AppData/
+**/Documents/Cline/
+**/Documents/*/MCP/
+**/.vscode/settings.json
+**/.gmail-mcp/
+
+# Development & Testing Artifacts
+**/*test-config*
+**/*dev-config*
+**/logs/
+**/*.log
+**/.cache/
+**/temp/
+**/tmp/
+
+# API Keys & Tokens (patterns)
+**/*api*key*
+**/*access*token*
+**/*refresh*token*
+**/*client*secret*
+**/*bearer*token*
+**/*auth*key*
+
+# PowerShell & Script Outputs
+**/*.ps1.log
+**/*.ps1.out
+**/*.ps1.err

@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Star, Archive, Trash2, Plus } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   ThreadMeta,
   getThreads,
   onThreadsChanged,
   createThread,
-  updateThread,
   deleteThread,
   getMessages,
 } from "@/hooks/useChatStore";
@@ -26,7 +25,6 @@ function snippet(text: string, words = 10): string {
 
 export default function ThreadsSidebar({ onSelect, activeId }: Props) {
   const [threads, setThreads] = useState<ThreadMeta[]>([]);
-  const [filter, setFilter] = useState<"all" | "starred" | "archived">("all");
 
   // Load + subscribe to changes
   useEffect(() => {
@@ -42,88 +40,42 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
     }
   }, [threads, activeId, onSelect]);
 
-  const list = useMemo(() => {
-    let v = threads;
-    if (filter === "starred") v = v.filter((t) => t.starred);
-    if (filter === "archived") v = v.filter((t) => t.archived);
-    return v;
-  }, [threads, filter]);
-
-  // Backfill lastPreview for legacy threads (without lastPreview) once
-  useEffect(() => {
-    const missing = threads.filter((t) => typeof t.lastPreview === "undefined");
-    if (missing.length === 0) return;
-    missing.forEach((t) => {
-      const msgs = getMessages(t.id);
-      const last = msgs[msgs.length - 1];
-      const preview = last ? `${last.role === "user" ? "You" : "Sol"}: ${snippet(last.content)}` : "";
-      updateThread(t.id, { lastPreview: preview });
-    });
-  }, [threads]);
-
-  function toggleStar(id: string) {
-    const t = threads.find((x) => x.id === id);
-    updateThread(id, { starred: !t?.starred });
-  }
-  function toggleArchive(id: string) {
-    const t = threads.find((x) => x.id === id);
-    updateThread(id, { archived: !t?.archived });
-  }
   function remove(id: string) {
     deleteThread(id);
     if (activeId === id) onSelect(null);
   }
+
   function addThread() {
     const n = createThread("New Chat");
     onSelect(n.id);
   }
 
   return (
-    <aside className="panel rounded-none h-full min-w-[18rem] w-[18rem] shrink-0 flex flex-col bg-[color:var(--bg-elev-2)] z-30 text-[13px]">
-      <div className="flex items-center justify-between px-3 py-2">
-        <div className="text-sm font-medium text-text">Chat History</div>
+    <aside className="h-full w-72 bg-gray-50 border-r flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-lg font-semibold text-gray-900">Chat History</h2>
         <button
           type="button"
           title="New chat"
           onClick={addThread}
-          className="inline-flex items-center gap-1 rounded-md bg-[color:var(--bg-elev-2)] px-2 py-1 text-sm text-text shadow-hairline"
+          className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          <Plus className="h-4 w-4 text-neutral-300" />
-          <span>New chat</span>
-        </button>
-      </div>
-      <div className="flex items-center gap-2 p-2 text-xs">
-        <button
-          className={btn(filter === "all")}
-          onClick={() => setFilter("all")}
-          type="button"
-        >
-          All
-        </button>
-        <button
-          className={btn(filter === "starred")}
-          onClick={() => setFilter("starred")}
-          type="button"
-        >
-          Starred
-        </button>
-        <button
-          className={btn(filter === "archived")}
-          onClick={() => setFilter("archived")}
-          type="button"
-        >
-          Archived
+          <Plus className="h-4 w-4" />
+          New chat
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 scroll-hover">
-        {list.length === 0 ? (
-          <div className="p-3 text-center text-xs text-neutral-500">No threads yet</div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {threads.length === 0 ? (
+          <div className="p-4 text-center text-sm text-gray-500">No threads yet</div>
         ) : (
-          <ul className="space-y-1">
-            {list.map((t) => {
+          <ul className="space-y-2">
+            {threads.map((t) => {
               const active = t.id === activeId;
-              const lastText = t.lastPreview ?? "";
+              const msgs = getMessages(t.id);
+              const lastMsg = msgs[msgs.length - 1];
+              const lastText = lastMsg ? `${lastMsg.role === "user" ? "You" : "Sol"}: ${snippet(lastMsg.content)}` : "Empty";
+              
               return (
                 <li key={t.id}>
                   <div
@@ -132,51 +84,27 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
                     onClick={() => onSelect(t.id)}
                     onKeyDown={(e) => e.key === "Enter" && onSelect(t.id)}
                     className={[
-                      "group flex cursor-pointer items-start justify-between rounded-lg px-2 py-2 shadow-hairline",
+                      "group flex cursor-pointer items-start justify-between rounded-lg p-3 border transition-colors",
                       active
-                        ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-text"
-                        : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text",
+                        ? "bg-blue-50 border-blue-200"
+                        : "bg-white border-gray-200 hover:bg-gray-50",
                     ].join(" ")}
                   >
-                    <div className="min-w-0 pr-2">
-                      <div className="truncate text-sm text-text">{t.title}</div>
-                      <div className="truncate text-xs text-text-dim">{lastText || "Empty"}</div>
+                    <div className="min-w-0 flex-1 pr-3">
+                      <div className="truncate text-sm font-medium text-gray-900">{t.title}</div>
+                      <div className="truncate text-xs text-gray-500 mt-1">{lastText}</div>
                     </div>
-                    <div className="mt-1 flex items-center gap-1">
-                      <button
-                        type="button"
-                        title="Star"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStar(t.id);
-                        }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                      >
-                        <Star className={`h-3.5 w-3.5 ${t.starred ? "text-[var(--accent)]" : "text-neutral-400"}`} />
-                      </button>
-                      <button
-                        type="button"
-                        title="Archive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleArchive(t.id);
-                        }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                      >
-                        <Archive className={`h-3.5 w-3.5 ${t.archived ? "text-[var(--accent)]" : "text-neutral-400"}`} />
-                      </button>
-                      <button
-                        type="button"
-                        title="Delete"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          remove(t.id);
-                        }}
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--bg-elev-2)] text-text shadow-hairline"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-neutral-400" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      title="Delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        remove(t.id);
+                      }}
+                      className="flex-shrink-0 p-1 text-gray-400 hover:text-red-600 rounded"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </li>
               );
@@ -186,13 +114,4 @@ export default function ThreadsSidebar({ onSelect, activeId }: Props) {
       </div>
     </aside>
   );
-}
-
-function btn(active: boolean) {
-  return [
-    "rounded-md px-2 py-1",
-    active
-      ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-text"
-      : "bg-[color:var(--bg-elev-2)] text-text-dim hover:text-text shadow-hairline",
-  ].join(" ");
 }
