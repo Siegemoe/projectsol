@@ -83,8 +83,7 @@ export default function SolChat({
     const sc = scrollRef.current;
     if (!sc) return;
 
-    const nearBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 48;
-    const shouldStick = autoStickNextRef.current || pinnedToBottom || nearBottom;
+    const shouldStick = autoStickNextRef.current || pinnedToBottom;
 
     if (shouldStick) {
       sc.scrollTop = sc.scrollHeight;
@@ -351,7 +350,7 @@ export default function SolChat({
         ref={scrollRef}
         onScroll={(e) => {
           const sc = e.currentTarget;
-          const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 48;
+          const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 4;
           setPinnedToBottom(atBottom);
         }}
         className="flex-1 min-h-0 overflow-y-scroll overscroll-auto touch-pan-y pl-3 pr-8 md:pr-14 pt-4 chat-scroll [scrollbar-gutter:stable]"
