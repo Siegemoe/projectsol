@@ -216,3 +216,24 @@ input:focus, textarea:focus, select:focus {
     animation: none !important;
   }
 }
+
+/* Chat scroll area: always-visible, themed scrollbar */
+.chat-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: color-mix(in srgb, var(--accent) 25%, var(--bg-elev-2)) transparent;
+}
+.chat-scroll::-webkit-scrollbar {
+  width: 10px; /* Chrome/Safari/Edge */
+  height: 10px;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--bg-elev-2),
+    color-mix(in srgb, var(--accent) 25%, var(--bg-elev-2))
+  );
+  border-radius: 999px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}

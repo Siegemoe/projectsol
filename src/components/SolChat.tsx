@@ -66,8 +66,10 @@ export default function SolChat({
   const [composerBox, setComposerBox] = useState<{ left: number; width: number; bottom: number }>({
     left: 0,
     width: 0,
-    bottom: 8,
+    bottom: 0,
   });
+  const composerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollPad, setScrollPad] = useState(128);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -180,6 +182,8 @@ export default function SolChat({
       }
       right = 12;
       bottom = 88;
+      const h = composerRef.current ? composerRef.current.offsetHeight : 96;
+      setScrollPad(h + 8);
       setRailOffset({ top, right, bottom });
     }
     measure();
@@ -307,7 +311,8 @@ export default function SolChat({
       {/* Scrollable messages area (extra bottom padding so fixed composer won't overlap) */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 pb-28 scroll-hover"
+        className="flex-1 overflow-y-auto pl-3 pr-8 md:pr-14 pt-4 chat-scroll"
+        style={{ paddingBottom: scrollPad }}
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-3">
           {messages.map((m, idx) => {
@@ -325,7 +330,7 @@ export default function SolChat({
                     "max-w-[90%] whitespace-pre-wrap text-[13px] leading-5",
                     isUser
                       ? "rounded-2xl px-3 py-2 bg-[color-mix(in_srgb,var(--accent)_18%,var(--bg-elev-2))] text-text"
-                      : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text shadow-hairline",
+                      : "rounded-2xl px-3 py-2 bg-[color:var(--bg-elev-2)] text-text",
                   ].join(" ")}
                 >
                   {m.content}
@@ -336,7 +341,7 @@ export default function SolChat({
 
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl px-3 py-2 text-sm text-text bg-[color:var(--bg-elev-2)] shadow-hairline">
+              <div className="rounded-2xl px-3 py-2 text-sm text-text bg-[color:var(--bg-elev-2)]">
                 Thinking…
               </div>
             </div>
@@ -348,6 +353,7 @@ export default function SolChat({
       {mounted
         ? createPortal(
             <div
+              ref={composerRef}
               className="bg-[color:var(--panel-bg)] px-3 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-saturate-125 z-50"
               style={{
                 position: "fixed",
