@@ -2,8 +2,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-$settingsPath = 'C:\Users\zghor\AppData\Roaming\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json'
-
+$settingsPath = Join-Path $env:APPDATA 'Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json'
 # Backup existing working config
 $backup = "$settingsPath.bak-$(Get-Date -Format yyyyMMddHHmmss)"
 Copy-Item -Force $settingsPath $backup

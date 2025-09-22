@@ -330,7 +330,7 @@ export default function EmailWindow({
               className="min-w-[320px] max-w-[600px]"
               style={{ width: previewWidth }}
             >
-              <SolChat title="Sol" apiPath="/api/sol-chat" emailToolEnabled={false} />
+              <SolChat title="Sol" apiPath="/api/sol-chat" />
             </div>
           </div>
         </div>
