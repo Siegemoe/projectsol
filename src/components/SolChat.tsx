@@ -69,6 +69,7 @@ export default function SolChat({
   const [pinnedToBottom, setPinnedToBottom] = useState(true);
   const autoStickNextRef = useRef(false);
   const composerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollPad, setScrollPad] = useState(140);
   const [composerHeight, setComposerHeight] = useState(0);
 
   useEffect(() => setMounted(true), []);
@@ -220,7 +221,19 @@ export default function SolChat({
       if (cleanup) cleanup();
     };
   }, []);
-  
+
+  // Observe composer height to keep bottom padding in sync with its size
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight || 0;
+      setScrollPad(h + 8);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -346,7 +359,8 @@ export default function SolChat({
           const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 4;
           setPinnedToBottom(atBottom);
         }}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain pl-3 pr-8 md:pr-14 pt-4 pb-4 [scrollbar-gutter:stable]"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain pl-3 pr-8 md:pr-14 pt-4 [scrollbar-gutter:stable]"
+        style={{ paddingBottom: scrollPad }}
       >
         <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
           {messages.map((m, idx) => {
@@ -368,8 +382,8 @@ export default function SolChat({
                   ].join(" ")}
                 >
                   {m.content}
-                </div>
-              </div>
+        </div>
+      </div>
             );
           })}
 
@@ -381,6 +395,7 @@ export default function SolChat({
             </div>
           )}
         </div>
+        <div className="pointer-events-none sticky bottom-0 h-12 -mb-12 bg-gradient-to-b from-transparent to-[color:var(--panel-bg)]" />
       </div>
 
       {/* Composer at bottom (not sticky, just a regular block) */}
