@@ -353,7 +353,7 @@ export default function SolChat({
           const atBottom = sc.scrollHeight - (sc.scrollTop + sc.clientHeight) < 4;
           setPinnedToBottom(atBottom);
         }}
-        className="flex-1 min-h-0 overflow-y-scroll overscroll-auto touch-pan-y pl-3 pr-8 md:pr-14 pt-4 chat-scroll [scrollbar-gutter:stable]"
+        className="flex-1 min-h-0 overflow-y-scroll overscroll-contain touch-pan-y pl-3 pr-8 md:pr-14 pt-4 chat-scroll [scrollbar-gutter:stable]"
         style={{ paddingBottom: scrollPad }}
       >
         <div className="mx-auto flex max-w-[720px] lg:max-w-[860px] xl:max-w-[960px] 2xl:max-w-[1100px] flex-col gap-3">
