@@ -3,11 +3,11 @@ import Chat2Pane from "@/components/chat/Chat2Pane";
 export default async function AppChatPage() {
   // For development - bypass auth check when running locally
   if (process.env.NODE_ENV === "development") {
-    return (
-      <div className="-mx-2 sm:-mx-4 h-full min-h-0 flex flex-col">
-        <Chat2Pane />
-      </div>
-    );
+  return (
+    <div className="h-full min-h-0 flex flex-col">
+      <Chat2Pane />
+    </div>
+  );
   }
 
   // Production auth check
@@ -28,7 +28,7 @@ export default async function AppChatPage() {
   }
 
   return (
-    <div className="-mx-2 sm:-mx-4 h-full min-h-0 flex flex-col">
+    <div className="h-full min-h-0 flex flex-col">
       <Chat2Pane />
     </div>
   );
