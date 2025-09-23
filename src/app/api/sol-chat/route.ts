@@ -143,8 +143,8 @@ export async function POST(req: Request) {
   }
 
   // Check API key
-  if (!process.env.OPENROUTER_API_KEY) {
-    return jsonError("Missing OPENROUTER_API_KEY", 500, commonLimitHeaders);
+  if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === "your-openrouter-api-key-here") {
+    return jsonError("OpenRouter API key not configured. Add your API key to .env.local: OPENROUTER_API_KEY=sk-or-your-key", 500, commonLimitHeaders);
   }
 
   // Validate model
